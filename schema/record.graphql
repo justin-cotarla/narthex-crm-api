@@ -1,0 +1,4 @@
+interface Record {
+    creationTimestamp: Int
+    modificationTimestamp: Int
+}

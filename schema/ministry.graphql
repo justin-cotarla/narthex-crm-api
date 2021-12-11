@@ -1,0 +1,19 @@
+type Ministry implements Record {
+    id: Int
+    name: String
+    color: String
+    creationTimestamp: Int
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+input MinistryAddInput {
+    name: String!
+    color: String
+}
+
+input MinistryUpdateInput {
+    id: Int!
+    name: String
+    color: String
+}

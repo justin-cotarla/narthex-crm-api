@@ -1,0 +1,12 @@
+type Query {
+    ministries(page: Int, limit: Int, order: SortOrder): [Ministry]
+    ministryById(ministryId: Int!): Ministry
+}
+
+type Mutation {
+    addMinistry(ministryAddInput: MinistryAddInput): Ministry!
+    updateMinistry(ministryUpdateInput: MinistryUpdateInput): Ministry!
+    deleteMinistry(ministryId: Int!): Int!
+}
+
+ 
