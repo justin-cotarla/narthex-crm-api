@@ -24,6 +24,9 @@ async function startApolloServer() {
                 ? ApolloServerPluginLandingPageDisabled()
                 : ApolloServerPluginLandingPageGraphQLPlayground(),
         ],
+        context: () => ({
+            jwtSecret: config.jwtSecret,
+        }),
         dataSources: () => ({
             narthexCrmDbDataSource,
         }),

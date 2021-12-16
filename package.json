@@ -36,8 +36,10 @@
     "@graphql-tools/graphql-file-loader": "^7.3.3",
     "@graphql-tools/load": "^7.4.1",
     "apollo-server": "^3.5.0",
+    "argon2": "^0.28.3",
     "dotenv": "^10.0.0",
     "graphql": "^15.8.0",
+    "jsonwebtoken": "^8.5.1",
     "mysql": "^2.18.1"
   },
   "devDependencies": {

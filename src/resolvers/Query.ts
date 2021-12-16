@@ -12,12 +12,20 @@ const ministries: Ministry[] = [
 ];
 
 const Query: QueryResolvers = {
-    ministries: async (_, __, { dataSources: { narthexCrmDbDataSource } }) => {
-        const res = await narthexCrmDbDataSource.cacheQuery({
-            sql: 'DESCRIBE client',
-        });
-        console.log(res[0]);
+    ministries: async () => {
         return ministries;
+    },
+    getToken: async (
+        _,
+        { emailAddress, password },
+        { dataSources: { narthexCrmDbDataSource }, jwtSecret }
+    ) => {
+        const token = await narthexCrmDbDataSource.getToken(
+            emailAddress,
+            password,
+            jwtSecret
+        );
+        return token;
     },
 };
 

@@ -10,6 +10,7 @@ MYSQL_USER=[string]
 DB_CONNECTION_LIMIT=[number]
 DB_HOST=[string]
 DB_NAME=[string]
+JWT_SECRET=[string]
 ```
 
 ## Development

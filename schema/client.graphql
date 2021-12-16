@@ -1,0 +1,20 @@
+type Client {
+    id: Int!
+    emailAddress: String
+    creationTimestamp: Int
+    lastLoginTimestamp: Int
+    permissionScope: String
+    active: Boolean
+}
+
+input ClientAddInput {
+    emailAddress: String!
+    password: String!
+}
+
+input ClientUpdateInput {
+    id: Int!
+    emailAddress: String
+    password: String
+    active: Boolean
+}

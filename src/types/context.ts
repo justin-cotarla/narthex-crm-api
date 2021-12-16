@@ -1,7 +1,10 @@
-import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
+import type { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
 
-export type Context = {
+interface Context {
     dataSources: {
         narthexCrmDbDataSource: NarthexCrmDbDataSource;
     };
-};
+    jwtSecret: string;
+}
+
+export type { Context };

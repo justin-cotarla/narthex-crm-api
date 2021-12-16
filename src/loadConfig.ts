@@ -8,6 +8,7 @@ const loadConfig = (): Config => {
         DB_CONNECTION_LIMIT,
         DB_HOST,
         DB_NAME,
+        JWT_SECRET,
     } = process.env as NodeJS.ProcessEnv | ConfigFile;
 
     if (
@@ -15,7 +16,8 @@ const loadConfig = (): Config => {
         !MYSQL_PASSWORD ||
         !MYSQL_USER ||
         !DB_HOST ||
-        !DB_NAME
+        !DB_NAME ||
+        !JWT_SECRET
     ) {
         throw new Error('Incomplete configuration');
     }
@@ -33,6 +35,7 @@ const loadConfig = (): Config => {
                 ? parseInt(DB_CONNECTION_LIMIT, 10)
                 : 10,
         },
+        jwtSecret: JWT_SECRET,
     };
 };
 

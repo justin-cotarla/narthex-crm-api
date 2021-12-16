@@ -1,4 +1,4 @@
-import { PoolConfig } from 'mysql';
+import type { PoolConfig } from 'mysql';
 
 interface ConfigFile {
     SERVER_PORT: string;
@@ -7,6 +7,7 @@ interface ConfigFile {
     DB_CONNECTION_LIMIT: string;
     DB_HOST: string;
     DB_NAME: string;
+    JWT_SECRET: string;
 }
 
 interface Config {
@@ -14,6 +15,7 @@ interface Config {
         port: number;
     };
     database: PoolConfig;
+    jwtSecret: string;
 }
 
-export { ConfigFile, Config };
+export type { ConfigFile, Config };

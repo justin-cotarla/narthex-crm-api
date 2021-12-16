@@ -16,7 +16,16 @@ class MySqlDataSource extends DataSource {
     constructor(mySqlConfig: PoolConfig) {
         super();
 
-        this.pool = mysql.createPool(mySqlConfig);
+        this.pool = mysql.createPool({
+            ...mySqlConfig,
+            typeCast: (field, next) => {
+                if (field.type === 'BIT' && field.length === 1) {
+                    return Buffer.from(field.string()!).readInt8();
+                } else {
+                    return next();
+                }
+            },
+        });
     }
 
     initialize(config: DataSourceConfig<Context>) {
@@ -24,7 +33,7 @@ class MySqlDataSource extends DataSource {
         this.cache = config.cache || new InMemoryLRUCache();
     }
 
-    async query(options: QueryOptions) {
+    async query<T>(options: QueryOptions): Promise<T | void> {
         if (!this.pool) {
             throw new Error('Pool not initialized');
         }
@@ -40,7 +49,7 @@ class MySqlDataSource extends DataSource {
 
             connection.release();
 
-            return results;
+            return results as T;
         } catch (e) {
             console.error(e);
         }

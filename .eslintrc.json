@@ -15,6 +15,7 @@
     },
     "plugins": ["@typescript-eslint", "import"],
     "rules": {
+        "@typescript-eslint/no-non-null-assertion": 0,
         "import/order": [
             "error",
             {
