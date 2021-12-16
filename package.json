@@ -4,9 +4,9 @@
   "description": "NarthexCRM GraphQL API",
   "main": "index.js",
   "scripts": {
-    "dev": "CONFIG=config/dev.json ts-node-dev --transpile-only -r dotenv/config src/index.ts",
+    "dev": "CONFIG=config/dev.json ts-node-dev --inspect=9229 --transpile-only -r dotenv/config src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "graphql:types": "graphql-codegen --config codegen.yml",
+    "generate": "graphql-codegen --config codegen.yml",
     "prepare": "husky install"
   },
   "repository": {
@@ -37,11 +37,13 @@
     "@graphql-tools/load": "^7.4.1",
     "apollo-server": "^3.5.0",
     "dotenv": "^10.0.0",
-    "graphql": "^15.8.0"
+    "graphql": "^15.8.0",
+    "mysql": "^2.18.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
     "@commitlint/config-conventional": "^15.0.0",
+    "@graphql-codegen/add": "^3.1.0",
     "@graphql-codegen/cli": "2.3.0",
     "@graphql-codegen/introspection": "2.1.0",
     "@graphql-codegen/typescript": "2.4.1",
@@ -49,6 +51,7 @@
     "@graphql-codegen/typescript-resolvers": "2.4.2",
     "@graphql-tools/load-files": "^6.5.2",
     "@graphql-tools/merge": "^8.2.1",
+    "@types/mysql": "^2.15.19",
     "@types/node": "^16.11.12",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",

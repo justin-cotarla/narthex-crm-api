@@ -4,10 +4,16 @@ import {
     ApolloServerPluginLandingPageDisabled,
 } from 'apollo-server-core';
 
+import { NarthexCrmDbDataSource } from './datasources/NarthexCrmDbDataSource';
+import { loadConfig } from './loadConfig';
 import { loadTypeDefs } from './loadTypeDefs';
 import { resolvers } from './resolvers';
 
 async function startApolloServer() {
+    const config = loadConfig();
+
+    const narthexCrmDbDataSource = new NarthexCrmDbDataSource(config.database);
+
     const typeDefs = await loadTypeDefs();
 
     const server = new ApolloServer({
@@ -18,10 +24,13 @@ async function startApolloServer() {
                 ? ApolloServerPluginLandingPageDisabled()
                 : ApolloServerPluginLandingPageGraphQLPlayground(),
         ],
+        dataSources: () => ({
+            narthexCrmDbDataSource,
+        }),
     });
 
     const { url } = await server.listen({
-        port: process.env.SERVER_PORT,
+        port: config.server.port,
     });
 
     console.log(`Server ready at ${url}`);

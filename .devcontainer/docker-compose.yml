@@ -2,6 +2,8 @@ version : "3.8"
 services:
     narthex-crm-api:
         build: .
+        container_name: narthex-crm-api-vscode
         command: /bin/sh -c "while sleep 1000; do :; done"
         volumes: 
             - ..:/workspace:cached
+        network_mode: "host"
