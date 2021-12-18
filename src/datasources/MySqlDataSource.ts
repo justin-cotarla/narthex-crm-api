@@ -3,10 +3,11 @@ import { promisify } from 'util';
 
 import { DataSource, DataSourceConfig } from 'apollo-datasource';
 import { InMemoryLRUCache, KeyValueCache } from 'apollo-server-caching';
-import mysql, { Pool, PoolConfig, QueryOptions } from 'mysql';
+import mysql, { Pool, PoolConfig, QueryOptions, MysqlError } from 'mysql';
 
 import { Context } from '../types/context';
-import { QueryError } from '../util/error';
+import { MySqlErrorCode } from '../util/enums';
+import { DatabaseError, QueryError } from '../util/error';
 
 class MySqlDataSource extends DataSource {
     private context?: Context;
@@ -52,13 +53,17 @@ class MySqlDataSource extends DataSource {
 
             return results as T;
         } catch (e) {
-            console.error(e);
-
-            if (e instanceof Error) {
-                throw new QueryError(e.message);
+            if (!(e instanceof Error)) {
+                console.error(e);
+                throw new QueryError('Query could not be executed');
             }
 
-            throw new QueryError('Query could not be executed');
+            if ((e as MysqlError).errno === MySqlErrorCode.DUPLICATE_ENTRY) {
+                throw new DatabaseError('Duplicate Entry');
+            }
+
+            console.error(e);
+            throw new QueryError(e.message);
         }
     }
 

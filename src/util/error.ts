@@ -16,4 +16,12 @@ class QueryError extends ApolloError {
     }
 }
 
-export { NotFoundError, QueryError };
+class DatabaseError extends ApolloError {
+    constructor(message: string) {
+        super(message, 'DUPLICATE_ENTRY');
+
+        Object.defineProperty(this, 'name', { value: 'DatabaseError' });
+    }
+}
+
+export { NotFoundError, QueryError, DatabaseError };
