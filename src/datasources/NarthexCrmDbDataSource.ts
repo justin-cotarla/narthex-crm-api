@@ -2,7 +2,11 @@ import { ForbiddenError } from 'apollo-server-errors';
 import { PoolConfig } from 'mysql';
 
 import { ClientToken } from '../types/auth';
+import { DBClient } from '../types/database';
+import { Client } from '../types/generated/graphql';
 import { generateClientToken, hashPassword, verifyHash } from '../util/crypto';
+import { NotFoundError } from '../util/error';
+import { mapClient } from '../util/mappers';
 
 import { MySqlDataSource } from './MySqlDataSource';
 
@@ -17,7 +21,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
     ): Promise<number> => {
         const passwordHash = await hashPassword(password);
 
-        const result = await this.query<{ insertId: number }>({
+        const rows = await this.query<{ insertId: number }>({
             sql: `
                 INSERT INTO client
                     (email_address, pass_hash)
@@ -27,11 +31,37 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             values: [emailAddress, passwordHash],
         });
 
-        if (!result) {
+        if (!rows) {
             throw new Error('Could not add client');
         }
 
-        return result.insertId;
+        return rows.insertId;
+    };
+
+    getClients = async (clientIds?: number[]): Promise<Client[]> => {
+        const sql = `
+            SELECT
+                id,
+                email_address,
+                creation_timestamp,
+                permission_scope,
+                last_login_timestamp,
+                active
+            FROM
+            client
+                ${clientIds && 'WHERE id in (?)'}
+        `;
+
+        const rows = await this.query<DBClient[]>({
+            sql,
+            values: [clientIds],
+        });
+
+        if (!rows || rows.length === 0) {
+            throw new NotFoundError('Client does not exist');
+        }
+
+        return rows.map(mapClient);
     };
 
     getToken = async (
@@ -39,7 +69,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         password: string,
         jwtSecret: string
     ): Promise<string> => {
-        const result = await this.query<
+        const rows = await this.query<
             {
                 id: number;
                 email_address: string;
@@ -58,12 +88,12 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             values: [emailAddress],
         });
 
-        if (!result || result.length === 0) {
-            throw new ForbiddenError('Account does not exist');
+        if (!rows || rows.length === 0) {
+            throw new NotFoundError('Account does not exist');
         }
 
         const [{ id, active, email_address, permission_scope, pass_hash }] =
-            result;
+            rows;
 
         if (active === 0) {
             throw new ForbiddenError('Account deactivated');

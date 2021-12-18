@@ -27,6 +27,18 @@ const Query: QueryResolvers = {
         );
         return token;
     },
+    getClientById: async (
+        _,
+        { clientId },
+        { dataSources: { narthexCrmDbDataSource } }
+    ) => {
+        const [client] = await narthexCrmDbDataSource.getClients([clientId]);
+        return client;
+    },
+    getClients: async (_, __, { dataSources: { narthexCrmDbDataSource } }) => {
+        const clients = await narthexCrmDbDataSource.getClients();
+        return clients;
+    },
 };
 
 export { Query };

@@ -6,6 +6,7 @@ import { InMemoryLRUCache, KeyValueCache } from 'apollo-server-caching';
 import mysql, { Pool, PoolConfig, QueryOptions } from 'mysql';
 
 import { Context } from '../types/context';
+import { QueryError } from '../util/error';
 
 class MySqlDataSource extends DataSource {
     private context?: Context;
@@ -52,6 +53,12 @@ class MySqlDataSource extends DataSource {
             return results as T;
         } catch (e) {
             console.error(e);
+
+            if (e instanceof Error) {
+                throw new QueryError(e.message);
+            }
+
+            throw new QueryError('Query could not be executed');
         }
     }
 

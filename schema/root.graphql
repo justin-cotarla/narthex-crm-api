@@ -1,6 +1,9 @@
 type Query {
     getToken(emailAddress: String!, password: String!): String
 
+    getClients: [Client!]!
+    getClientById(clientId: Int!): Client!
+
     ministries(page: Int, limit: Int, order: SortOrder): [Ministry!]!
     ministryById(ministryId: Int!): Ministry
 }
