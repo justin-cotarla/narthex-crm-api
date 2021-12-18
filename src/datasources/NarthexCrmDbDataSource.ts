@@ -74,15 +74,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         password: string,
         jwtSecret: string
     ): Promise<string> => {
-        const rows = await this.query<
-            {
-                id: number;
-                email_address: string;
-                permission_scope: string;
-                active: number;
-                pass_hash: string;
-            }[]
-        >({
+        const rows = await this.query<DBClient[]>({
             sql: `
                 SELECT id, email_address, permission_scope, active, pass_hash
                 FROM

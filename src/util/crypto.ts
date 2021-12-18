@@ -41,4 +41,16 @@ const generateClientToken = async (
     return token;
 };
 
-export { hashPassword, verifyHash, generateClientToken };
+const decodeClientToken = async (
+    token: string,
+    jwtSecret: string
+): Promise<ClientToken | null> => {
+    try {
+        const decoded = await jwt.verify(token, jwtSecret);
+        return decoded as ClientToken;
+    } catch {
+        return null;
+    }
+};
+
+export { hashPassword, verifyHash, generateClientToken, decodeClientToken };

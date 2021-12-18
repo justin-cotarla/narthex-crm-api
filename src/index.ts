@@ -8,6 +8,7 @@ import { NarthexCrmDbDataSource } from './datasources/NarthexCrmDbDataSource';
 import { loadConfig } from './loadConfig';
 import { loadTypeDefs } from './loadTypeDefs';
 import { resolvers } from './resolvers';
+import { decodeClientToken } from './util/crypto';
 
 async function startApolloServer() {
     const config = loadConfig();
@@ -24,8 +25,12 @@ async function startApolloServer() {
                 ? ApolloServerPluginLandingPageDisabled()
                 : ApolloServerPluginLandingPageGraphQLPlayground(),
         ],
-        context: () => ({
+        context: async ({ req }) => ({
             jwtSecret: config.jwtSecret,
+            clientToken: await decodeClientToken(
+                req.headers.authorization ?? '',
+                config.jwtSecret
+            ),
         }),
         dataSources: () => ({
             narthexCrmDbDataSource,

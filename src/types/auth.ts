@@ -1,7 +1,7 @@
 interface ClientToken {
     id: number;
     emailAddress: string;
-    permissionScope: string;
+    permissionScope: 'admin';
 }
 
 export type { ClientToken };
