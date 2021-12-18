@@ -1,4 +1,4 @@
-import { ForbiddenError } from 'apollo-server-errors';
+import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { PoolConfig } from 'mysql';
 
 import { ClientToken } from '../types/auth';
@@ -7,6 +7,7 @@ import { Client } from '../types/generated/graphql';
 import { generateClientToken, hashPassword, verifyHash } from '../util/crypto';
 import { NotFoundError } from '../util/error';
 import { mapClient } from '../util/mappers';
+import { validateEmail } from '../util/validation';
 
 import { MySqlDataSource } from './MySqlDataSource';
 
@@ -19,6 +20,10 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         emailAddress: string,
         password: string
     ): Promise<number> => {
+        if (!validateEmail(emailAddress)) {
+            throw new UserInputError('Malformed Email');
+        }
+
         const passwordHash = await hashPassword(password);
 
         const rows = await this.query<{ insertId: number }>({
