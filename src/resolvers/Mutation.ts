@@ -13,9 +13,8 @@ const Mutation: MutationResolvers = {
             password
         );
 
-        return {
-            id: clientId,
-        };
+        const [client] = await narthexCrmDbDataSource.getClients([clientId]);
+        return client;
     },
 };
 
