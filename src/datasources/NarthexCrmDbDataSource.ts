@@ -26,13 +26,15 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         const passwordHash = await hashPassword(password);
 
+        const sql = `
+            INSERT INTO client
+                (email_address, pass_hash)
+            VALUES
+                (?, ?)
+        `;
+
         const rows = await this.query<{ insertId: number }>({
-            sql: `
-                INSERT INTO client
-                    (email_address, pass_hash)
-                VALUES
-                    (?, ?)
-            `,
+            sql,
             values: [emailAddress, passwordHash],
         });
 
@@ -54,12 +56,12 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
                 active
             FROM
             client
-                ${clientIds && 'WHERE id in (?)'}
+                ${clientIds ? 'WHERE id in (?)' : ''}
         `;
 
         const rows = await this.query<DBClient[]>({
             sql,
-            values: [clientIds],
+            ...(clientIds ? { values: [clientIds] } : {}),
         });
 
         if (!rows || rows.length === 0) {
