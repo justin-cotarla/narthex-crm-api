@@ -94,14 +94,14 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         const [{ id, active, email_address, permission_scope, pass_hash }] =
             rows;
 
-        if (active === 0) {
-            throw new ForbiddenError('Account deactivated');
-        }
-
         const isAuthenticated = await verifyHash(password, pass_hash);
 
         if (!isAuthenticated) {
             throw new ForbiddenError('Not authorized');
+        }
+
+        if (active === 0) {
+            throw new ForbiddenError('Account deactivated');
         }
 
         const tokenPayload: ClientToken = {

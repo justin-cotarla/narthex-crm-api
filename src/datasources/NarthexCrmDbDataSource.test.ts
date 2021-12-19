@@ -1,8 +1,8 @@
-import { UserInputError } from 'apollo-server';
+import { ForbiddenError, UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
 
 import { DBClient } from '../types/database';
-import { hashPassword } from '../util/crypto';
+import { hashPassword, verifyHash, generateClientToken } from '../util/crypto';
 import { NotFoundError } from '../util/error';
 import * as mappers from '../util/mappers';
 import { validateEmail } from '../util/validation';
@@ -22,19 +22,21 @@ const mockHashPassword = mocked(hashPassword);
 
 jest.mock('../util/validation');
 const mockValidateEmail = mocked(validateEmail);
+const mockVerifyHash = mocked(verifyHash);
+const mockGenerateClientToken = mocked(generateClientToken);
 
 const spyMapClient = spyOn(mappers, 'mapClient');
 
 const narthexCrmDbDataSource = new NarthexCrmDbDataSource({});
 
 beforeEach(() => {
-    mockQuery.mockReset();
+    mockQuery.mockClear();
 });
 
 describe('addClient', () => {
     beforeEach(() => {
-        mockHashPassword.mockReset();
-        mockValidateEmail.mockReset();
+        mockHashPassword.mockClear();
+        mockValidateEmail.mockClear();
     });
 
     it('adds a new client', async () => {
@@ -92,7 +94,6 @@ describe('addClient', () => {
 
 describe('getClients', () => {
     beforeEach(() => {
-        mockQuery.mockReset();
         spyMapClient.mockClear();
     });
 
@@ -223,5 +224,110 @@ describe('getClients', () => {
         ).rejects.toThrowError(NotFoundError);
 
         expect(spyMapClient).toHaveBeenCalledTimes(0);
+    });
+});
+
+describe('getToken', () => {
+    beforeEach(() => {
+        mockVerifyHash.mockClear();
+        mockGenerateClientToken.mockClear();
+    });
+
+    it('generates a token', async () => {
+        mockQuery.mockImplementation((): DBClient[] => [
+            {
+                id: 1,
+                active: 1,
+                creation_timestamp: new Date('19/12/2021'),
+                email_address: 'email@example.com',
+                pass_hash: 'hash',
+                permission_scope: 'admin',
+                last_login_timestamp: new Date('19/12/2021'),
+            },
+        ]);
+        mockVerifyHash.mockImplementation(async () => true);
+        mockGenerateClientToken.mockImplementation(async () => 'token');
+
+        const result = await narthexCrmDbDataSource.getToken(
+            'email@example.com',
+            'password',
+            'secret'
+        );
+
+        expect(mockQuery).toBeCalledWith({
+            sql: `
+                SELECT id, email_address, permission_scope, active, pass_hash
+                FROM
+                client
+                WHERE
+                    email_address LIKE ?
+            `,
+            values: ['email@example.com'],
+        });
+        expect(mockVerifyHash).toBeCalled();
+        expect(result).toStrictEqual('token');
+    });
+
+    it('throws an error if the account does not exist', async () => {
+        mockQuery.mockImplementation((): DBClient[] => []);
+
+        await expect(
+            narthexCrmDbDataSource.getToken(
+                'email@example.com',
+                'password',
+                'secret'
+            )
+        ).rejects.toThrowError(NotFoundError);
+
+        expect(mockVerifyHash).toBeCalledTimes(0);
+    });
+
+    it('throws an error if the client is deactivated', async () => {
+        mockQuery.mockImplementation((): DBClient[] => [
+            {
+                id: 1,
+                active: 0,
+                creation_timestamp: new Date('19/12/2021'),
+                email_address: 'email@example.com',
+                pass_hash: 'hash',
+                permission_scope: 'admin',
+                last_login_timestamp: new Date('19/12/2021'),
+            },
+        ]);
+
+        await expect(
+            narthexCrmDbDataSource.getToken(
+                'email@example.com',
+                'password',
+                'secret'
+            )
+        ).rejects.toThrowError(ForbiddenError);
+
+        expect(mockVerifyHash).toBeCalledTimes(1);
+    });
+
+    it('throws an error if the password is invalid', async () => {
+        mockQuery.mockImplementation((): DBClient[] => [
+            {
+                id: 1,
+                active: 1,
+                creation_timestamp: new Date('19/12/2021'),
+                email_address: 'email@example.com',
+                pass_hash: 'hash',
+                permission_scope: 'admin',
+                last_login_timestamp: new Date('19/12/2021'),
+            },
+        ]);
+        mockVerifyHash.mockImplementation(async () => false);
+
+        await expect(
+            narthexCrmDbDataSource.getToken(
+                'email@example.com',
+                'password',
+                'secret'
+            )
+        ).rejects.toThrowError(ForbiddenError);
+
+        expect(mockVerifyHash).toBeCalledTimes(1);
     });
 });
