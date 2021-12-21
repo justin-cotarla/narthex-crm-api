@@ -1,5 +1,6 @@
 import { ForbiddenError, UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
+import { format as sqlFormat } from 'sql-formatter';
 
 import { DBClient } from '../types/database';
 import { hashPassword, verifyHash, generateClientToken } from '../util/crypto';
@@ -62,12 +63,12 @@ describe('addClient', () => {
         expect(mockHashPassword).toBeCalled();
         expect(result).toBe(1);
         expect(mockQuery).toBeCalledWith({
-            sql: `
-            INSERT INTO client
-                (email_address, pass_hash)
-            VALUES
-                (?, ?)
-        `,
+            sql: sqlFormat(`
+                INSERT INTO client
+                    (email_address, pass_hash)
+                VALUES
+                    (?, ?)
+            `),
             values: ['email@test.com', 'hash'],
         });
     });
@@ -128,18 +129,17 @@ describe('getClients', () => {
         const result = await narthexCrmDbDataSource.getClients();
 
         expect(mockQuery).toBeCalledWith({
-            sql: `
-            SELECT
-                id,
-                email_address,
-                creation_timestamp,
-                permission_scope,
-                last_login_timestamp,
-                active
-            FROM
-            client
-                
-        `,
+            sql: sqlFormat(`
+                SELECT
+                    id,
+                    email_address,
+                    creation_timestamp,
+                    permission_scope,
+                    last_login_timestamp,
+                    active
+                FROM
+                client
+            `),
         });
         expect(spyMapClient).toHaveBeenCalled();
         expect(result).toStrictEqual([
@@ -187,18 +187,18 @@ describe('getClients', () => {
         const result = await narthexCrmDbDataSource.getClients([1, 2]);
 
         expect(mockQuery).toBeCalledWith({
-            sql: `
-            SELECT
-                id,
-                email_address,
-                creation_timestamp,
-                permission_scope,
-                last_login_timestamp,
-                active
-            FROM
-            client
-                WHERE id in (?)
-        `,
+            sql: sqlFormat(`
+                SELECT
+                    id,
+                    email_address,
+                    creation_timestamp,
+                    permission_scope,
+                    last_login_timestamp,
+                    active
+                FROM
+                client
+                    WHERE id in (?)
+            `),
             values: [[1, 2]],
         });
         expect(spyMapClient).toHaveBeenCalled();
@@ -261,24 +261,24 @@ describe('getToken', () => {
         );
 
         expect(mockQuery).toHaveBeenNthCalledWith(1, {
-            sql: `
-            SELECT id, email_address, permission_scope, active, pass_hash
-            FROM
-            client
-            WHERE
-                email_address LIKE ?
-        `,
+            sql: sqlFormat(`
+                SELECT id, email_address, permission_scope, active, pass_hash
+                FROM
+                client
+                WHERE
+                    email_address LIKE ?
+            `),
             values: ['email@example.com'],
         });
 
         expect(mockQuery).toHaveBeenNthCalledWith(2, {
-            sql: `
-            UPDATE client
-            SET
-                last_login_timestamp = CURRENT_TIMESTAMP
-            WHERE
-                 id = ?
-        `,
+            sql: sqlFormat(`
+                UPDATE client
+                SET
+                    last_login_timestamp = CURRENT_TIMESTAMP
+                WHERE
+                    id = ?
+            `),
             values: [1],
         });
         expect(mockVerifyHash).toBeCalled();

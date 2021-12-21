@@ -1,5 +1,6 @@
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { PoolConfig } from 'mysql';
+import { format as sqlFormat } from 'sql-formatter';
 
 import { ClientToken } from '../types/auth';
 import {
@@ -22,13 +23,13 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
     }
 
     private logClientConnection = async (clientId: number) => {
-        const sql = `
+        const sql = sqlFormat(`
             UPDATE client
             SET
                 last_login_timestamp = CURRENT_TIMESTAMP
             WHERE
                  id = ?
-        `;
+        `);
 
         const rows = await this.query<DBUpdateResponse>({
             sql,
@@ -50,12 +51,12 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         const passwordHash = await hashPassword(password);
 
-        const sql = `
+        const sql = sqlFormat(`
             INSERT INTO client
                 (email_address, pass_hash)
             VALUES
                 (?, ?)
-        `;
+        `);
 
         const rows = await this.query<DBInsertResponse>({
             sql,
@@ -70,7 +71,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
     };
 
     getClients = async (clientIds?: number[]): Promise<Client[]> => {
-        const sql = `
+        const sql = sqlFormat(`
             SELECT
                 id,
                 email_address,
@@ -81,7 +82,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             FROM
             client
                 ${clientIds ? 'WHERE id in (?)' : ''}
-        `;
+        `);
 
         const rows = await this.query<DBClient[]>({
             sql,
@@ -100,13 +101,13 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         password: string,
         jwtSecret: string
     ): Promise<string> => {
-        const sql = `
+        const sql = sqlFormat(`
             SELECT id, email_address, permission_scope, active, pass_hash
             FROM
             client
             WHERE
                 email_address LIKE ?
-        `;
+        `);
 
         const rows = await this.query<DBClient[]>({
             sql,
@@ -155,12 +156,12 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             active,
         });
 
-        const sql = `
+        const sql = sqlFormat(`
             UPDATE client
             SET
             ${setClause}
             WHERE ID = ?;
-        `;
+        `);
 
         const values = [
             ...(password ? [await hashPassword(password)] : []),
