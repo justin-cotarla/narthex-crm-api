@@ -2,11 +2,16 @@ import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { PoolConfig } from 'mysql';
 
 import { ClientToken } from '../types/auth';
-import { DBClient } from '../types/database';
-import { Client } from '../types/generated/graphql';
+import {
+    DBClient,
+    DBInsertResponse,
+    DBUpdateResponse,
+} from '../types/database';
+import { Client, ClientUpdateInput } from '../types/generated/graphql';
 import { generateClientToken, hashPassword, verifyHash } from '../util/crypto';
-import { NotFoundError } from '../util/error';
+import { DatabaseError, NotFoundError } from '../util/error';
 import { mapClient } from '../util/mappers';
+import { buildSetClause } from '../util/query';
 import { validateEmail } from '../util/validation';
 
 import { MySqlDataSource } from './MySqlDataSource';
@@ -25,7 +30,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
                  id = ?
         `;
 
-        const rows = await this.query<{ changedRows: number }>({
+        const rows = await this.query<DBUpdateResponse>({
             sql,
             values: [clientId],
         });
@@ -52,7 +57,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
                 (?, ?)
         `;
 
-        const rows = await this.query<{ insertId: number }>({
+        const rows = await this.query<DBInsertResponse>({
             sql,
             values: [emailAddress, passwordHash],
         });
@@ -95,14 +100,16 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         password: string,
         jwtSecret: string
     ): Promise<string> => {
+        const sql = `
+            SELECT id, email_address, permission_scope, active, pass_hash
+            FROM
+            client
+            WHERE
+                email_address LIKE ?
+        `;
+
         const rows = await this.query<DBClient[]>({
-            sql: `
-                SELECT id, email_address, permission_scope, active, pass_hash
-                FROM
-                client
-                WHERE
-                    email_address LIKE ?
-            `,
+            sql,
             values: [emailAddress],
         });
 
@@ -132,6 +139,43 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         await this.logClientConnection(id);
 
         return generateClientToken(tokenPayload, jwtSecret);
+    };
+
+    updateClient = async (
+        clientUpdateInput: ClientUpdateInput
+    ): Promise<void> => {
+        if (Object.keys(clientUpdateInput).length <= 1) {
+            throw new UserInputError('Nothing to update');
+        }
+
+        const { id, active, password } = clientUpdateInput;
+
+        const setClause = buildSetClause({
+            pass_hash: password,
+            active,
+        });
+
+        const sql = `
+            UPDATE client
+            SET
+            ${setClause}
+            WHERE ID = ?;
+        `;
+
+        const values = [
+            ...(password ? [await hashPassword(password)] : []),
+            ...(active !== undefined ? [Number(active)] : []),
+            id,
+        ];
+
+        const rows = await this.query<DBUpdateResponse>({
+            sql,
+            values,
+        });
+
+        if (!rows || rows.affectedRows === 0) {
+            throw new DatabaseError('Could not update client');
+        }
     };
 }
 

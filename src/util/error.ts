@@ -18,7 +18,7 @@ class QueryError extends ApolloError {
 
 class DatabaseError extends ApolloError {
     constructor(message: string) {
-        super(message, 'DUPLICATE_ENTRY');
+        super(message, 'DATABASE_ERROR');
 
         Object.defineProperty(this, 'name', { value: 'DatabaseError' });
     }

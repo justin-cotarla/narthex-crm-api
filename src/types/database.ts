@@ -8,4 +8,13 @@ interface DBClient {
     pass_hash: string;
 }
 
-export type { DBClient };
+interface DBInsertResponse {
+    insertId: number;
+}
+
+interface DBUpdateResponse {
+    changedRows: number;
+    affectedRows: number;
+}
+
+export type { DBClient, DBUpdateResponse, DBInsertResponse };

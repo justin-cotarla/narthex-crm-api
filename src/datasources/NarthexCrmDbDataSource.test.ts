@@ -27,7 +27,7 @@ const mockGenerateClientToken = mocked(generateClientToken);
 
 const spyMapClient = spyOn(mappers, 'mapClient');
 
-const spyConsoleError = spyOn(console, 'error');
+const spyConsoleError = spyOn(console, 'error').mockImplementation(jest.fn());
 
 const narthexCrmDbDataSource = new NarthexCrmDbDataSource({});
 
@@ -262,12 +262,12 @@ describe('getToken', () => {
 
         expect(mockQuery).toHaveBeenNthCalledWith(1, {
             sql: `
-                SELECT id, email_address, permission_scope, active, pass_hash
-                FROM
-                client
-                WHERE
-                    email_address LIKE ?
-            `,
+            SELECT id, email_address, permission_scope, active, pass_hash
+            FROM
+            client
+            WHERE
+                email_address LIKE ?
+        `,
             values: ['email@example.com'],
         });
 

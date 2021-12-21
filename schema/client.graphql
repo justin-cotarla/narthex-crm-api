@@ -14,7 +14,6 @@ input ClientAddInput {
 
 input ClientUpdateInput {
     id: Int!
-    emailAddress: String
     password: String
     active: Boolean
 }
