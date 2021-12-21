@@ -16,6 +16,25 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         super(mySqlConfig);
     }
 
+    private logClientConnection = async (clientId: number) => {
+        const sql = `
+            UPDATE client
+            SET
+                last_login_timestamp = CURRENT_TIMESTAMP
+            WHERE
+                 id = ?
+        `;
+
+        const rows = await this.query<{ changedRows: number }>({
+            sql,
+            values: [clientId],
+        });
+
+        if (!rows || rows.changedRows === 0) {
+            console.error('Could not log client connections');
+        }
+    };
+
     addClient = async (
         emailAddress: string,
         password: string
@@ -109,6 +128,8 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             emailAddress: email_address,
             permissionScope: permission_scope,
         };
+
+        await this.logClientConnection(id);
 
         return generateClientToken(tokenPayload, jwtSecret);
     };

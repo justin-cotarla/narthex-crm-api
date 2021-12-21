@@ -35,7 +35,7 @@ class MySqlDataSource extends DataSource {
         this.cache = config.cache || new InMemoryLRUCache();
     }
 
-    async query<T>(options: QueryOptions): Promise<T | void> {
+    protected async query<T>(options: QueryOptions): Promise<T | void> {
         if (!this.pool) {
             throw new Error('Pool not initialized');
         }
@@ -67,7 +67,7 @@ class MySqlDataSource extends DataSource {
         }
     }
 
-    async cacheQuery(options: QueryOptions, ttl = 5) {
+    protected async cacheQuery(options: QueryOptions, ttl = 5) {
         if (!this.cache) {
             throw new Error('Cache not initialized');
         }

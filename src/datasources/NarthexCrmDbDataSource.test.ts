@@ -27,10 +27,16 @@ const mockGenerateClientToken = mocked(generateClientToken);
 
 const spyMapClient = spyOn(mappers, 'mapClient');
 
+const spyConsoleError = spyOn(console, 'error');
+
 const narthexCrmDbDataSource = new NarthexCrmDbDataSource({});
 
 beforeEach(() => {
     mockQuery.mockClear();
+});
+
+afterAll(() => {
+    spyConsoleError.mockClear();
 });
 
 describe('addClient', () => {
@@ -254,7 +260,7 @@ describe('getToken', () => {
             'secret'
         );
 
-        expect(mockQuery).toBeCalledWith({
+        expect(mockQuery).toHaveBeenNthCalledWith(1, {
             sql: `
                 SELECT id, email_address, permission_scope, active, pass_hash
                 FROM
@@ -263,6 +269,17 @@ describe('getToken', () => {
                     email_address LIKE ?
             `,
             values: ['email@example.com'],
+        });
+
+        expect(mockQuery).toHaveBeenNthCalledWith(2, {
+            sql: `
+            UPDATE client
+            SET
+                last_login_timestamp = CURRENT_TIMESTAMP
+            WHERE
+                 id = ?
+        `,
+            values: [1],
         });
         expect(mockVerifyHash).toBeCalled();
         expect(result).toStrictEqual('token');
@@ -280,6 +297,7 @@ describe('getToken', () => {
         ).rejects.toThrowError(NotFoundError);
 
         expect(mockVerifyHash).toBeCalledTimes(0);
+        expect(mockQuery).toBeCalledTimes(1);
     });
 
     it('throws an error if the client is deactivated', async () => {
@@ -304,6 +322,7 @@ describe('getToken', () => {
         ).rejects.toThrowError(ForbiddenError);
 
         expect(mockVerifyHash).toBeCalledTimes(1);
+        expect(mockQuery).toBeCalledTimes(1);
     });
 
     it('throws an error if the password is invalid', async () => {
@@ -329,5 +348,35 @@ describe('getToken', () => {
         ).rejects.toThrowError(ForbiddenError);
 
         expect(mockVerifyHash).toBeCalledTimes(1);
+        expect(mockQuery).toBeCalledTimes(1);
+    });
+
+    it('does not hang if the client connection is not logged', async () => {
+        mockQuery.mockImplementationOnce((): DBClient[] => [
+            {
+                id: 1,
+                active: 1,
+                creation_timestamp: new Date('19/12/2021'),
+                email_address: 'email@example.com',
+                pass_hash: 'hash',
+                permission_scope: 'admin',
+                last_login_timestamp: new Date('19/12/2021'),
+            },
+        ]);
+        mockQuery.mockImplementationOnce((): { changedRows: number } => ({
+            changedRows: 0,
+        }));
+
+        mockVerifyHash.mockImplementation(async () => true);
+
+        await narthexCrmDbDataSource.getToken(
+            'email@example.com',
+            'password',
+            'secret'
+        );
+
+        expect(mockVerifyHash).toBeCalledTimes(1);
+        expect(mockQuery).toBeCalledTimes(2);
+        expect(spyConsoleError).toBeCalledTimes(1);
     });
 });
