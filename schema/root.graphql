@@ -1,10 +1,10 @@
 type Query {
-    getToken(emailAddress: String!, password: String!): String
+    token(emailAddress: String!, password: String!): String
 
-    getClients: [Client!]!
-    getClientById(clientId: Int!): Client!
+    clients: [Client!]!
+    clientById(clientId: Int!): Client!
 
-    ministries(page: Int, limit: Int, order: SortOrder): [Ministry!]!
+    ministries: [Ministry!]!
     ministryById(ministryId: Int!): Ministry
 }
 

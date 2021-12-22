@@ -16,7 +16,7 @@ const Query: QueryResolvers = {
     ministries: async () => {
         return ministries;
     },
-    getToken: async (
+    token: async (
         _,
         { emailAddress, password },
         { dataSources: { narthexCrmDbDataSource }, jwtSecret, clientToken }
@@ -32,7 +32,7 @@ const Query: QueryResolvers = {
         );
         return token;
     },
-    getClientById: async (
+    clientById: async (
         _,
         { clientId },
         { dataSources: { narthexCrmDbDataSource }, clientToken }
@@ -45,7 +45,7 @@ const Query: QueryResolvers = {
         const [client] = await narthexCrmDbDataSource.getClients([clientId]);
         return client;
     },
-    getClients: async (
+    clients: async (
         _,
         __,
         { dataSources: { narthexCrmDbDataSource }, clientToken }
