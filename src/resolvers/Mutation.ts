@@ -1,13 +1,16 @@
-import { ForbiddenError } from 'apollo-server';
-
 import { MutationResolvers } from '../types/generated/graphql';
+import { authorize } from '../util/auth';
 
 const Mutation: MutationResolvers = {
     addClient: async (
         _,
         { clientAddInput },
-        { dataSources: { narthexCrmDbDataSource } }
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
     ) => {
+        authorize(clientToken, {
+            isPublic: true,
+        });
+
         const { emailAddress, password } = clientAddInput;
 
         const clientId = await narthexCrmDbDataSource.addClient(
@@ -23,13 +26,11 @@ const Mutation: MutationResolvers = {
         { clientUpdateInput },
         { dataSources: { narthexCrmDbDataSource }, clientToken }
     ) => {
-        if (
-            !clientToken ||
-            clientToken.permissionScope !== 'admin' ||
-            clientToken.id !== clientUpdateInput.id
-        ) {
-            throw new ForbiddenError('Not authorized');
-        }
+        authorize(clientToken, {
+            ownId: clientUpdateInput.id,
+            scopes: ['admin'],
+        });
+
         await narthexCrmDbDataSource.updateClient(clientUpdateInput);
 
         const [client] = await narthexCrmDbDataSource.getClients([

@@ -1,6 +1,5 @@
-import { ForbiddenError } from 'apollo-server';
-
 import { Ministry, QueryResolvers } from '../types/generated/graphql';
+import { authorize } from '../util/auth';
 
 const ministries: Ministry[] = [
     {
@@ -20,8 +19,12 @@ const Query: QueryResolvers = {
     getToken: async (
         _,
         { emailAddress, password },
-        { dataSources: { narthexCrmDbDataSource }, jwtSecret }
+        { dataSources: { narthexCrmDbDataSource }, jwtSecret, clientToken }
     ) => {
+        authorize(clientToken, {
+            isPublic: true,
+        });
+
         const token = await narthexCrmDbDataSource.getToken(
             emailAddress,
             password,
@@ -34,13 +37,11 @@ const Query: QueryResolvers = {
         { clientId },
         { dataSources: { narthexCrmDbDataSource }, clientToken }
     ) => {
-        if (
-            !clientToken ||
-            (clientToken.permissionScope !== 'admin' &&
-                clientToken.id !== clientId)
-        ) {
-            throw new ForbiddenError('Not authorized');
-        }
+        authorize(clientToken, {
+            ownId: clientId,
+            scopes: ['admin'],
+        });
+
         const [client] = await narthexCrmDbDataSource.getClients([clientId]);
         return client;
     },
@@ -49,9 +50,10 @@ const Query: QueryResolvers = {
         __,
         { dataSources: { narthexCrmDbDataSource }, clientToken }
     ) => {
-        if (!clientToken || clientToken.permissionScope !== 'admin') {
-            throw new ForbiddenError('Not authorized');
-        }
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
         const clients = await narthexCrmDbDataSource.getClients();
         return clients;
     },

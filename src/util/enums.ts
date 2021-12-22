@@ -12,4 +12,16 @@ const LOG_LEVELS = {
 
 type LogLevel = typeof LOG_LEVELS[keyof typeof LOG_LEVELS];
 
-export { MySqlErrorCode, LogLevel, LOG_LEVELS };
+const PERMISSION_SCOPES = {
+    ADMIN: 'admin',
+} as const;
+
+type PermissionScope = typeof PERMISSION_SCOPES[keyof typeof PERMISSION_SCOPES];
+
+export {
+    MySqlErrorCode,
+    LogLevel,
+    LOG_LEVELS,
+    PermissionScope,
+    PERMISSION_SCOPES,
+};
