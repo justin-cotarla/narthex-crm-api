@@ -3,7 +3,7 @@ A CRM for Orthodox Churches
 
 ## Environment
 Narthex CRM expects an environment file (`.env`)
-```
+```bash
 SERVER_PORT=[number]
 MYSQL_PASSWORD=[string]
 MYSQL_USER=[string]
@@ -11,7 +11,10 @@ DB_CONNECTION_LIMIT=[number]
 DB_HOST=[string]
 DB_NAME=[string]
 JWT_SECRET=[string]
+(LOG_LEVEL)=["error" | "warn" | "info" | "verbose" | "debug"]
+(LOG_FILE_NAME)=[string]
 ```
+Properties between parentheses are optional
 
 ## Development
 To setup a local development for Narthex API, first install Node dependencies:

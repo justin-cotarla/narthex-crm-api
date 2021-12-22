@@ -1,3 +1,5 @@
+import { Logger } from 'winston';
+
 import type { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
 
 import { ClientToken } from './auth';
@@ -8,6 +10,7 @@ interface Context {
     };
     jwtSecret: string;
     clientToken: ClientToken | null;
+    logger: Logger;
 }
 
 export type { Context };

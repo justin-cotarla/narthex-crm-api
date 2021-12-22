@@ -5,13 +5,15 @@ import {
 } from 'apollo-server-core';
 
 import { NarthexCrmDbDataSource } from './datasources/NarthexCrmDbDataSource';
-import { loadConfig } from './loadConfig';
-import { loadTypeDefs } from './loadTypeDefs';
 import { resolvers } from './resolvers';
+import { loadTypeDefs } from './util/apollo';
+import { loadConfig } from './util/config';
 import { decodeClientToken } from './util/crypto';
+import { getLogger } from './util/logger';
 
 async function startApolloServer() {
     const config = loadConfig();
+    const logger = getLogger(config.log);
 
     const narthexCrmDbDataSource = new NarthexCrmDbDataSource(config.database);
 
@@ -31,6 +33,7 @@ async function startApolloServer() {
                 req.headers.authorization ?? '',
                 config.jwtSecret
             ),
+            logger,
         }),
         dataSources: () => ({
             narthexCrmDbDataSource,
@@ -41,7 +44,7 @@ async function startApolloServer() {
         port: config.server.port,
     });
 
-    console.log(`Server ready at ${url}`);
+    logger.info(`Server ready at ${url}`);
 }
 
 startApolloServer();

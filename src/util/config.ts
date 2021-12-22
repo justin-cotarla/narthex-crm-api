@@ -1,4 +1,6 @@
-import { Config, ConfigFile } from './types/config';
+import { Config, ConfigFile } from '../types/config';
+
+import { LogLevel, LOG_LEVELS } from './enums';
 
 const loadConfig = (): Config => {
     const {
@@ -9,6 +11,8 @@ const loadConfig = (): Config => {
         DB_HOST,
         DB_NAME,
         JWT_SECRET,
+        LOG_FILE_NAME,
+        LOG_LEVEL = LOG_LEVELS.INFO,
     } = process.env as NodeJS.ProcessEnv | ConfigFile;
 
     if (
@@ -20,6 +24,13 @@ const loadConfig = (): Config => {
         !JWT_SECRET
     ) {
         throw new Error('Incomplete configuration');
+    }
+
+    if (
+        LOG_LEVEL &&
+        !Object.values(LOG_LEVELS).includes(LOG_LEVEL as LogLevel)
+    ) {
+        throw new Error('Unsupported log level');
     }
 
     return {
@@ -36,6 +47,10 @@ const loadConfig = (): Config => {
                 : 10,
         },
         jwtSecret: JWT_SECRET,
+        log: {
+            level: LOG_LEVEL as LogLevel,
+            file: LOG_FILE_NAME ?? 'narthex_crm.log',
+        },
     };
 };
 
