@@ -2,9 +2,9 @@ import { ForbiddenError, UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
-import { DBClient } from '../types/database';
+import { DBClient, DBUpdateResponse } from '../types/database';
 import { hashPassword, verifyHash, generateClientToken } from '../util/crypto';
-import { NotFoundError } from '../util/error';
+import { DatabaseError, NotFoundError } from '../util/error';
 import * as mappers from '../util/mappers';
 import { validateEmail } from '../util/validation';
 
@@ -378,5 +378,60 @@ describe('getToken', () => {
         expect(mockVerifyHash).toBeCalledTimes(1);
         expect(mockQuery).toBeCalledTimes(2);
         expect(mockErrorLogger).toBeCalledTimes(1);
+    });
+
+    describe('updateClient', () => {
+        it('updates a client', async () => {
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 1,
+                    changedRows: 1,
+                })
+            );
+            mockHashPassword.mockImplementation(async () => 'hash');
+
+            await narthexCrmDbDataSource.updateClient({
+                id: 1,
+                active: false,
+                password: 'password',
+            });
+
+            expect(mockQuery).toHaveBeenCalledWith({
+                sql: sqlFormat(`UPDATE
+                    client
+                    SET
+                    pass_hash = ?,
+                    active = ?
+                    WHERE
+                    ID = ?;`),
+                values: ['hash', 0, 1],
+            });
+        });
+
+        it('throws an error if no changes are provided', async () => {
+            await expect(
+                narthexCrmDbDataSource.updateClient({
+                    id: 1,
+                })
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockQuery).toHaveBeenCalledTimes(0);
+        });
+
+        it('throws an error if the client was not updated on the database', async () => {
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 0,
+                    changedRows: 0,
+                })
+            );
+
+            await expect(
+                narthexCrmDbDataSource.updateClient({
+                    id: 1,
+                    active: false,
+                })
+            ).rejects.toThrowError(DatabaseError);
+        });
     });
 });
