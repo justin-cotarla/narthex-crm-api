@@ -37,7 +37,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         });
 
         if (!rows || rows.changedRows === 0) {
-            console.error('Could not log client connections');
+            this.context!.logger.error('Could not log client connections');
         }
     };
 

@@ -11,10 +11,16 @@ import { validateEmail } from '../util/validation';
 import { NarthexCrmDbDataSource } from './NarthexCrmDbDataSource';
 
 const mockQuery = jest.fn();
+const mockErrorLogger = jest.fn();
 
 jest.mock('./MySqlDataSource', () => ({
     MySqlDataSource: jest.fn().mockImplementation(() => ({
         query: mockQuery,
+        context: {
+            logger: {
+                error: mockErrorLogger,
+            },
+        },
     })),
 }));
 
@@ -28,16 +34,10 @@ const mockGenerateClientToken = mocked(generateClientToken);
 
 const spyMapClient = spyOn(mappers, 'mapClient');
 
-const spyConsoleError = spyOn(console, 'error').mockImplementation(jest.fn());
-
 const narthexCrmDbDataSource = new NarthexCrmDbDataSource({});
 
 beforeEach(() => {
     mockQuery.mockClear();
-});
-
-afterAll(() => {
-    spyConsoleError.mockClear();
 });
 
 describe('addClient', () => {
@@ -377,6 +377,6 @@ describe('getToken', () => {
 
         expect(mockVerifyHash).toBeCalledTimes(1);
         expect(mockQuery).toBeCalledTimes(2);
-        expect(spyConsoleError).toBeCalledTimes(1);
+        expect(mockErrorLogger).toBeCalledTimes(1);
     });
 });

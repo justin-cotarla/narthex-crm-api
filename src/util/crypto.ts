@@ -16,16 +16,7 @@ const JWT_PARAMS: SignOptions = {
 };
 
 const hashPassword = async (password: string): Promise<string> => {
-    let hrTime = process.hrtime();
-    const startTime = hrTime[0] * 1000000 + hrTime[1] / 1000;
-
     const hash = await argon2.hash(password, ARGON2_PARAMS);
-
-    hrTime = process.hrtime();
-    const endTime = hrTime[0] * 1000000 + hrTime[1] / 1000;
-
-    console.log(`Hash generated in ${(endTime - startTime) / 1000000}s`);
-
     return hash;
 };
 

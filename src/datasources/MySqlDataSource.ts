@@ -10,7 +10,7 @@ import { MySqlErrorCode } from '../util/enums';
 import { DatabaseError, QueryError } from '../util/error';
 
 class MySqlDataSource extends DataSource {
-    private context?: Context;
+    protected context?: Context;
     private cache?: KeyValueCache<string>;
 
     private pool?: Pool;
@@ -54,7 +54,7 @@ class MySqlDataSource extends DataSource {
             return results as T;
         } catch (e) {
             if (!(e instanceof Error)) {
-                console.error(e);
+                this.context?.logger.error(e);
                 throw new QueryError('Query could not be executed');
             }
 
@@ -62,7 +62,7 @@ class MySqlDataSource extends DataSource {
                 throw new DatabaseError('Duplicate Entry');
             }
 
-            console.error(e);
+            this.context?.logger.error(e);
             throw new QueryError(e.message);
         }
     }
