@@ -6,7 +6,7 @@ import {
 
 import { NarthexCrmDbDataSource } from './datasources/NarthexCrmDbDataSource';
 import { resolvers } from './resolvers';
-import { loadTypeDefs } from './util/apollo';
+import { ApolloLoggingPlugin, loadTypeDefs } from './util/apollo';
 import { loadConfig } from './util/config';
 import { decodeClientToken } from './util/crypto';
 import { getLogger } from './util/logger';
@@ -25,7 +25,12 @@ async function startApolloServer() {
         plugins: [
             process.env.NODE_ENV === 'production'
                 ? ApolloServerPluginLandingPageDisabled()
-                : ApolloServerPluginLandingPageGraphQLPlayground(),
+                : ApolloServerPluginLandingPageGraphQLPlayground({
+                      settings: {
+                          'schema.polling.interval': 300000,
+                      },
+                  }),
+            ApolloLoggingPlugin(),
         ],
         context: async ({ req }) => ({
             jwtSecret: config.jwtSecret,

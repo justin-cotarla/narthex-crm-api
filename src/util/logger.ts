@@ -6,7 +6,6 @@ const logPrintf = (info: winston.Logform.TransformableInfo) =>
     `[${info.timestamp}] [${info.level}]: ${info.message}`;
 
 const getLogger = ({ file, level }: Config['log']): Logger => {
-    console.log(level.toString());
     const logger = createLogger({
         level: level.toString(),
         transports: [
@@ -23,6 +22,7 @@ const getLogger = ({ file, level }: Config['log']): Logger => {
             }),
             new winston.transports.File({
                 filename: file,
+                level: 'info',
                 format: format.combine(
                     format.simple(),
                     format.timestamp({

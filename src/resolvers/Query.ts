@@ -36,8 +36,8 @@ const Query: QueryResolvers = {
     ) => {
         if (
             !clientToken ||
-            clientToken.permissionScope !== 'admin' ||
-            clientToken.id !== clientId
+            (clientToken.permissionScope !== 'admin' &&
+                clientToken.id !== clientId)
         ) {
             throw new ForbiddenError('Not authorized');
         }
