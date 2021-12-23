@@ -4,7 +4,7 @@
   "description": "NarthexCRM GraphQL API",
   "main": "index.js",
   "scripts": {
-    "dev": "CONFIG=config/dev.json ts-node-dev --inspect=9229 --transpile-only -r dotenv/config src/index.ts",
+    "dev": "NODE_ENV=development CONFIG=config/dev.json ts-node-dev --inspect=9229 --transpile-only -r dotenv/config src/index.ts",
     "test": "jest --coverage",
     "generate": "graphql-codegen --config codegen.yml",
     "prepare": "husky install"

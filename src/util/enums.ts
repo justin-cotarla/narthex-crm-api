@@ -18,10 +18,19 @@ const PERMISSION_SCOPES = {
 
 type PermissionScope = typeof PERMISSION_SCOPES[keyof typeof PERMISSION_SCOPES];
 
+const WHERE_OPERATIONS = {
+    AND: ' and ',
+    OR: ' or ',
+} as const;
+
+type WhereOperation = typeof WHERE_OPERATIONS[keyof typeof WHERE_OPERATIONS];
+
 export {
     MySqlErrorCode,
     LogLevel,
-    LOG_LEVELS,
+    WhereOperation,
     PermissionScope,
+    LOG_LEVELS,
     PERMISSION_SCOPES,
+    WHERE_OPERATIONS,
 };

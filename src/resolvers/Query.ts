@@ -13,9 +13,6 @@ const ministries: Ministry[] = [
 ];
 
 const Query: QueryResolvers = {
-    ministries: async () => {
-        return ministries;
-    },
     token: async (
         _,
         { emailAddress, password },
@@ -56,6 +53,22 @@ const Query: QueryResolvers = {
 
         const clients = await narthexCrmDbDataSource.getClients();
         return clients;
+    },
+    ministries: async (
+        _,
+        { archived },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const ministries = await narthexCrmDbDataSource.getMinistries(
+            [],
+            archived
+        );
+
+        return ministries;
     },
 };
 

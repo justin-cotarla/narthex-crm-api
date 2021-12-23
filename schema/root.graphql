@@ -4,7 +4,7 @@ type Query {
     clients: [Client!]!
     clientById(clientId: Int!): Client!
 
-    ministries: [Ministry!]!
+    ministries(archived: Boolean): [Ministry!]!
     ministryById(ministryId: Int!): Ministry
 }
 

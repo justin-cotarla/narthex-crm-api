@@ -6,14 +6,24 @@ import { ClientToken } from '../types/auth';
 import {
     DBClient,
     DBInsertResponse,
+    DBMinistry,
     DBUpdateResponse,
 } from '../types/database';
-import { Client, ClientUpdateInput } from '../types/generated/graphql';
+import {
+    Client,
+    ClientUpdateInput,
+    Ministry,
+    MinistryAddInput,
+} from '../types/generated/graphql';
 import { generateClientToken, hashPassword, verifyHash } from '../util/crypto';
 import { DatabaseError, NotFoundError } from '../util/error';
-import { mapClient } from '../util/mappers';
-import { buildSetClause } from '../util/query';
-import { validateEmail } from '../util/validation';
+import { mapClient, mapMinistry } from '../util/mappers';
+import { buildSetClause, buildWhereClause } from '../util/query';
+import {
+    validateColor,
+    validateEmail,
+    validateRecordName,
+} from '../util/validation';
 
 import { MySqlDataSource } from './MySqlDataSource';
 
@@ -121,7 +131,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         const [{ id, active, email_address, permission_scope, pass_hash }] =
             rows;
 
-        const isAuthenticated = await verifyHash(password, pass_hash);
+        const isAuthenticated = await verifyHash(password, pass_hash!);
 
         if (!isAuthenticated) {
             throw new ForbiddenError('Not authorized');
@@ -133,8 +143,8 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         const tokenPayload: ClientToken = {
             id,
-            emailAddress: email_address,
-            permissionScope: permission_scope,
+            emailAddress: email_address!,
+            permissionScope: permission_scope!,
         };
 
         await this.logClientConnection(id);
@@ -177,6 +187,80 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         if (!rows || rows.affectedRows === 0) {
             throw new DatabaseError('Could not update client');
         }
+    };
+
+    getMinistries = async (
+        ministryIds: number[],
+        archived?: boolean | null
+    ): Promise<Ministry[]> => {
+        const whereClause = buildWhereClause([
+            { clause: 'id in (?)', condition: ministryIds?.length !== 0 },
+            { clause: 'archived <> 1', condition: !archived },
+        ]);
+
+        const sql = sqlFormat(`
+            SELECT
+                id,
+                name,
+                color,
+                creation_timestamp,
+                modification_timestamp,
+                archived
+            FROM
+            ministry
+            ${whereClause}
+        `);
+
+        const values = [...(ministryIds.length !== 0 ? [ministryIds] : [])];
+
+        const rows = await this.query<DBMinistry[]>({
+            sql,
+            values,
+        });
+
+        if (!rows || rows.length === 0) {
+            throw new NotFoundError('Ministry does not exist');
+        }
+
+        return rows.map(mapMinistry);
+    };
+
+    addMinistry = async (
+        ministryAddInput: MinistryAddInput,
+        clientId: number
+    ): Promise<number> => {
+        const { name, color = '#B3BFB8' } = ministryAddInput;
+
+        if (!validateColor(color!)) {
+            throw new UserInputError('Invalid color');
+        }
+
+        if (!validateRecordName(name)) {
+            throw new UserInputError('Invalid ministry name');
+        }
+
+        const sql = sqlFormat(`
+            INSERT INTO ministry
+                (name, color, created_by, modified_by)
+            VALUES
+                (?, ?, ?, ?)
+        `);
+
+        const rows = await this.query<DBInsertResponse>({
+            sql,
+            values: [
+                name,
+                parseInt(color!.substring(1), 16),
+                clientId,
+                clientId,
+            ],
+        });
+
+        if (!rows) {
+            throw new Error('Could not add client');
+        }
+
+        return rows.insertId;
     };
 }
 

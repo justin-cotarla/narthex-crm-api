@@ -1,7 +1,7 @@
 import { getUnixTime } from 'date-fns';
 
-import { DBClient } from '../types/database';
-import { Client } from '../types/generated/graphql';
+import { DBClient, DBMinistry } from '../types/database';
+import { Client, Ministry } from '../types/generated/graphql';
 
 const mapClient = (dbClient: DBClient): Client => ({
     id: dbClient.id,
@@ -11,7 +11,21 @@ const mapClient = (dbClient: DBClient): Client => ({
     lastLoginTimestamp:
         dbClient.last_login_timestamp &&
         getUnixTime(dbClient.last_login_timestamp),
-    creationTimestamp: getUnixTime(dbClient.creation_timestamp),
+    creationTimestamp:
+        dbClient.creation_timestamp && getUnixTime(dbClient.creation_timestamp),
 });
 
-export { mapClient };
+const mapMinistry = (dbMinistry: DBMinistry): Ministry => ({
+    id: dbMinistry.id,
+    name: dbMinistry.name,
+    color: `#${dbMinistry.color?.toString(16).toUpperCase()}`,
+    creationTimestamp:
+        dbMinistry.creation_timestamp &&
+        getUnixTime(dbMinistry.creation_timestamp),
+    modificationTimestamp:
+        dbMinistry.modification_timestamp &&
+        getUnixTime(dbMinistry.modification_timestamp),
+    archived: Boolean(dbMinistry.archived),
+});
+
+export { mapClient, mapMinistry };

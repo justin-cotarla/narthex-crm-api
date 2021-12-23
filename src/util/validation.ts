@@ -3,4 +3,13 @@ const validateEmail = (email: string): boolean => {
     return emailRegex.test(email);
 };
 
-export { validateEmail };
+const validateColor = (color: string): boolean => {
+    const colorRegex = /^#[\dA-F]{6}$/;
+    return colorRegex.test(color);
+};
+
+const validateRecordName = (recordName: string): boolean => {
+    return recordName.length >= 3;
+};
+
+export { validateEmail, validateColor, validateRecordName };

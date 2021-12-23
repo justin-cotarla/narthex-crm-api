@@ -38,6 +38,25 @@ const Mutation: MutationResolvers = {
         ]);
         return client;
     },
+    addMinistry: async (
+        _,
+        { ministryAddInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const ministryId = await narthexCrmDbDataSource.addMinistry(
+            ministryAddInput,
+            clientToken!.id
+        );
+
+        const [ministry] = await narthexCrmDbDataSource.getMinistries([
+            ministryId,
+        ]);
+        return ministry;
+    },
 };
 
 export { Mutation };
