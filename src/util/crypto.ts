@@ -12,7 +12,7 @@ const ARGON2_PARAMS: argon2.Options & { raw?: false } = {
 };
 
 const JWT_PARAMS: SignOptions = {
-    expiresIn: '1h',
+    expiresIn: process.env.NODE_ENV === 'development' ? '9999 years' : '1h',
 };
 
 const hashPassword = async (password: string): Promise<string> => {
