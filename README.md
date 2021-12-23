@@ -16,6 +16,8 @@ JWT_SECRET=[string]
 ```
 Properties between parentheses are optional
 
+**Note**: `LOG_LEVEL=debug` will write passwords and sensitive data to `stdout`. Be careful when enabling this option. 
+
 ## Development
 To setup a local development for Narthex API, first install Node dependencies:
 ```bash

@@ -41,6 +41,14 @@ class MySqlDataSource extends DataSource {
         }
 
         try {
+            this.context?.logger.debug(`SQL Query\n${options.sql}`);
+
+            if (options.values.length > 0) {
+                this.context?.logger.debug(
+                    `SQL Query Values\n${options.values}`
+                );
+            }
+
             const connection = await promisify(this.pool.getConnection).bind(
                 this.pool
             )();
@@ -54,7 +62,6 @@ class MySqlDataSource extends DataSource {
             return results as T;
         } catch (e) {
             if (!(e instanceof Error)) {
-                this.context?.logger.error(e);
                 throw new QueryError('Query could not be executed');
             }
 
@@ -62,7 +69,6 @@ class MySqlDataSource extends DataSource {
                 throw new DatabaseError('Duplicate Entry');
             }
 
-            this.context?.logger.error(e);
             throw new QueryError(e.message);
         }
     }

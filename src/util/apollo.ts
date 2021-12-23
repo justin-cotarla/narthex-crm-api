@@ -46,11 +46,11 @@ const ApolloLoggingPlugin: () => ApolloServerPlugin =
                     return;
                 }
 
-                logger.debug(`Query:\n${query?.trim()}`);
+                logger.debug(`Query\n${query?.trim()}`);
 
                 if (Object.keys(variables ?? {}).length > 0) {
                     logger.debug(
-                        `Variables:\n${JSON.stringify(variables, null, 2)}`
+                        `Variables\n${JSON.stringify(variables, null, 2)}`
                     );
                 }
             },
