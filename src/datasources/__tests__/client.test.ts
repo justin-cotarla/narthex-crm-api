@@ -113,20 +113,20 @@ describe('client', () => {
                 {
                     id: 1,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'email@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
                 {
                     id: 2,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'test@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
 
@@ -149,18 +149,18 @@ describe('client', () => {
             expect(result).toStrictEqual([
                 {
                     active: true,
-                    creationTimestamp: NaN,
+                    creationTimestamp: 1639872000,
                     emailAddress: 'email@example.com',
                     id: 1,
-                    lastLoginTimestamp: NaN,
+                    lastLoginTimestamp: 1639872000,
                     permissionScope: 'admin',
                 },
                 {
                     active: true,
-                    creationTimestamp: NaN,
+                    creationTimestamp: 1639872000,
                     emailAddress: 'test@example.com',
                     id: 2,
-                    lastLoginTimestamp: NaN,
+                    lastLoginTimestamp: 1639872000,
                     permissionScope: 'admin',
                 },
             ]);
@@ -171,20 +171,20 @@ describe('client', () => {
                 {
                     id: 1,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'email@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
                 {
                     id: 2,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'test@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
 
@@ -209,18 +209,18 @@ describe('client', () => {
             expect(result).toStrictEqual([
                 {
                     active: true,
-                    creationTimestamp: NaN,
+                    creationTimestamp: 1639872000,
                     emailAddress: 'email@example.com',
                     id: 1,
-                    lastLoginTimestamp: NaN,
+                    lastLoginTimestamp: 1639872000,
                     permissionScope: 'admin',
                 },
                 {
                     active: true,
-                    creationTimestamp: NaN,
+                    creationTimestamp: 1639872000,
                     emailAddress: 'test@example.com',
                     id: 2,
-                    lastLoginTimestamp: NaN,
+                    lastLoginTimestamp: 1639872000,
                     permissionScope: 'admin',
                 },
             ]);
@@ -248,11 +248,11 @@ describe('client', () => {
                 {
                     id: 1,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'email@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
             mockVerifyHash.mockImplementation(async () => true);
@@ -309,11 +309,11 @@ describe('client', () => {
                 {
                     id: 1,
                     active: 0,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'email@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
 
@@ -334,11 +334,11 @@ describe('client', () => {
                 {
                     id: 1,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'email@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
             mockVerifyHash.mockImplementation(async () => false);
@@ -360,11 +360,11 @@ describe('client', () => {
                 {
                     id: 1,
                     active: 1,
-                    creation_timestamp: new Date('19/12/2021'),
+                    creation_timestamp: new Date('2021/12/19'),
                     email_address: 'email@example.com',
                     pass_hash: 'hash',
                     permission_scope: 'admin',
-                    last_login_timestamp: new Date('19/12/2021'),
+                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
             mockQuery.mockImplementationOnce((): { changedRows: number } => ({
