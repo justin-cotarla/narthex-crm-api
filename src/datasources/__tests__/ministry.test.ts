@@ -1,3 +1,4 @@
+import { UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
@@ -228,6 +229,98 @@ describe('ministry', () => {
             ).rejects.toThrowError(NotFoundError);
 
             expect(spyMapMinistry).toHaveBeenCalledTimes(0);
+        });
+    });
+    describe('addMinistry', () => {
+        beforeEach(() => {
+            mockValidateColor.mockClear();
+            mockValidateRecordName.mockClear();
+        });
+
+        it('adds a new ministry', async () => {
+            mockQuery.mockImplementation(() => ({
+                insertId: 1,
+            }));
+
+            mockValidateColor.mockImplementation(() => true);
+            mockValidateRecordName.mockImplementation(() => true);
+
+            const result = await narthexCrmDbDataSource.addMinistry(
+                {
+                    name: 'Choir',
+                    color: '#FFFFFF',
+                },
+                1
+            );
+
+            expect(mockValidateColor).toBeCalled();
+            expect(mockValidateRecordName).toBeCalled();
+            expect(result).toBe(1);
+            expect(mockQuery).toBeCalledWith({
+                sql: sqlFormat(`
+                INSERT INTO
+                    ministry (name, color, created_by, modified_by)
+                VALUES
+                    (?, ?, ?, ?)
+                `),
+                values: ['Choir', 16777215, 1, 1],
+            });
+        });
+
+        it('rejects invalid colors', async () => {
+            mockValidateColor.mockImplementation(() => false);
+            mockValidateRecordName.mockImplementation(() => true);
+
+            expect(
+                narthexCrmDbDataSource.addMinistry(
+                    {
+                        name: 'Choir',
+                        color: 'purple',
+                    },
+                    1
+                )
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockValidateColor).toBeCalled();
+            expect(mockQuery).toHaveBeenCalledTimes(0);
+        });
+
+        it('rejects invalid ministry names', async () => {
+            mockValidateColor.mockImplementation(() => true);
+            mockValidateRecordName.mockImplementation(() => false);
+
+            expect(
+                narthexCrmDbDataSource.addMinistry(
+                    {
+                        name: 'a',
+                        color: '#FFFFFF',
+                    },
+                    1
+                )
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockValidateRecordName).toBeCalled();
+            expect(mockQuery).toHaveBeenCalledTimes(0);
+        });
+
+        it('throws an error if the database fails to insert row', async () => {
+            mockQuery.mockImplementation(() => undefined);
+            mockValidateColor.mockImplementation(() => true);
+            mockValidateRecordName.mockImplementation(() => true);
+
+            await expect(
+                narthexCrmDbDataSource.addMinistry(
+                    {
+                        name: 'Choir',
+                        color: '#FFFFFF',
+                    },
+                    1
+                )
+            ).rejects.toThrowError(Error);
+
+            expect(mockValidateColor).toBeCalled();
+            expect(mockValidateRecordName).toBeCalled();
+            expect(mockQuery).toBeCalled();
         });
     });
 });

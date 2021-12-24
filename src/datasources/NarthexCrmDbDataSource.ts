@@ -259,7 +259,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         });
 
         if (!rows) {
-            throw new Error('Could not add client');
+            throw new Error('Could not add ministry');
         }
 
         return rows.insertId;
