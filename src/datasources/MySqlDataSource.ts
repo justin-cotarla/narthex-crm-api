@@ -43,7 +43,7 @@ class MySqlDataSource extends DataSource {
         try {
             this.context?.logger.debug(`SQL Query\n${options.sql}`);
 
-            if (options.values.length > 0) {
+            if (options.values?.length > 0) {
                 this.context?.logger.debug(
                     `SQL Query Values\n${options.values}`
                 );

@@ -2,10 +2,18 @@ import path from 'path';
 
 import { loadFiles } from '@graphql-tools/load-files';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import { ContextFunction } from 'apollo-server-core';
+import { ExpressContext } from 'apollo-server-express';
 import { ApolloServerPlugin } from 'apollo-server-plugin-base';
 import { FieldNode } from 'graphql';
 
+import { createDataLoaders } from '../dataloaders';
+import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
+import { Config } from '../types/config';
 import { Context } from '../types/context';
+
+import { decodeClientToken } from './crypto';
+import { getLogger } from './logger';
 
 const loadTypeDefs = async () => {
     const types = await loadFiles(
@@ -62,4 +70,19 @@ const ApolloLoggingPlugin: () => ApolloServerPlugin =
         }),
     });
 
-export { loadTypeDefs, ApolloLoggingPlugin };
+const getContextFunction =
+    (
+        config: Config,
+        narthexCrmDbDataSource: NarthexCrmDbDataSource
+    ): ContextFunction<ExpressContext, Omit<Context, 'dataSources'>> =>
+    async ({ req }) => ({
+        jwtSecret: config.jwtSecret,
+        clientToken: await decodeClientToken(
+            req.headers.authorization ?? '',
+            config.jwtSecret
+        ),
+        logger: getLogger(config.log),
+        dataLoaders: createDataLoaders(narthexCrmDbDataSource),
+    });
+
+export { loadTypeDefs, ApolloLoggingPlugin, getContextFunction };

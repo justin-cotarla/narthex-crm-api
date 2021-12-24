@@ -203,7 +203,9 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
                 id,
                 name,
                 color,
+                created_by,
                 creation_timestamp,
+                modified_by,
                 modification_timestamp,
                 archived
             FROM

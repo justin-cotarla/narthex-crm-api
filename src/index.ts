@@ -6,9 +6,12 @@ import {
 
 import { NarthexCrmDbDataSource } from './datasources/NarthexCrmDbDataSource';
 import { resolvers } from './resolvers';
-import { ApolloLoggingPlugin, loadTypeDefs } from './util/apollo';
+import {
+    ApolloLoggingPlugin,
+    getContextFunction,
+    loadTypeDefs,
+} from './util/apollo';
 import { loadConfig } from './util/config';
-import { decodeClientToken } from './util/crypto';
 import { getLogger } from './util/logger';
 
 async function startApolloServer() {
@@ -18,6 +21,8 @@ async function startApolloServer() {
     const narthexCrmDbDataSource = new NarthexCrmDbDataSource(config.database);
 
     const typeDefs = await loadTypeDefs();
+
+    const context = getContextFunction(config, narthexCrmDbDataSource);
 
     const server = new ApolloServer({
         typeDefs,
@@ -32,14 +37,7 @@ async function startApolloServer() {
                   }),
             ApolloLoggingPlugin(),
         ],
-        context: async ({ req }) => ({
-            jwtSecret: config.jwtSecret,
-            clientToken: await decodeClientToken(
-                req.headers.authorization ?? '',
-                config.jwtSecret
-            ),
-            logger,
-        }),
+        context,
         dataSources: () => ({
             narthexCrmDbDataSource,
         }),

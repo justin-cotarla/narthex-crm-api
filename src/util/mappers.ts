@@ -19,9 +19,15 @@ const mapMinistry = (dbMinistry: DBMinistry): Ministry => ({
     id: dbMinistry.id,
     name: dbMinistry.name,
     color: `#${dbMinistry.color?.toString(16).toUpperCase()}`,
+    createdBy: {
+        id: dbMinistry.created_by!,
+    },
     creationTimestamp:
         dbMinistry.creation_timestamp &&
         getUnixTime(dbMinistry.creation_timestamp),
+    modifiedBy: {
+        id: dbMinistry.modified_by!,
+    },
     modificationTimestamp:
         dbMinistry.modification_timestamp &&
         getUnixTime(dbMinistry.modification_timestamp),

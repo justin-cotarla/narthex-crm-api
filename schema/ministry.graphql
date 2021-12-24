@@ -1,8 +1,10 @@
 type Ministry implements Record {
-    id: Int
+    id: Int!
     name: String
     color: String
+    createdBy: Client!
     creationTimestamp: Int
+    modifiedBy: Client!
     modificationTimestamp: Int
     archived: Boolean
 }
