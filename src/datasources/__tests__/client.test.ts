@@ -14,16 +14,10 @@ import { validateEmail } from '../../util/validation';
 import { NarthexCrmDbDataSource } from '../NarthexCrmDbDataSource';
 
 const mockQuery = jest.fn();
-const mockErrorLogger = jest.fn();
 
 jest.mock('../MySqlDataSource', () => ({
     MySqlDataSource: jest.fn().mockImplementation(() => ({
         query: mockQuery,
-        context: {
-            logger: {
-                error: mockErrorLogger,
-            },
-        },
     })),
 }));
 
@@ -275,16 +269,6 @@ describe('client', () => {
                 values: ['email@example.com'],
             });
 
-            expect(mockQuery).toHaveBeenNthCalledWith(2, {
-                sql: sqlFormat(`
-                    UPDATE client
-                    SET
-                        last_login_timestamp = CURRENT_TIMESTAMP
-                    WHERE
-                        id = ?
-                `),
-                values: [1],
-            });
             expect(mockVerifyHash).toBeCalled();
             expect(result).toStrictEqual('token');
         });
@@ -353,35 +337,6 @@ describe('client', () => {
 
             expect(mockVerifyHash).toBeCalledTimes(1);
             expect(mockQuery).toBeCalledTimes(1);
-        });
-
-        it('does not hang if the client connection is not logged', async () => {
-            mockQuery.mockImplementationOnce((): DBClient[] => [
-                {
-                    id: 1,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'email@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-            ]);
-            mockQuery.mockImplementationOnce((): { changedRows: number } => ({
-                changedRows: 0,
-            }));
-
-            mockVerifyHash.mockImplementation(async () => true);
-
-            await narthexCrmDbDataSource.getToken(
-                'email@example.com',
-                'password',
-                'secret'
-            );
-
-            expect(mockVerifyHash).toBeCalledTimes(1);
-            expect(mockQuery).toBeCalledTimes(2);
-            expect(mockErrorLogger).toBeCalledTimes(1);
         });
     });
 

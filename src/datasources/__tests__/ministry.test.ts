@@ -9,16 +9,10 @@ import { validateRecordName, validateColor } from '../../util/validation';
 import { NarthexCrmDbDataSource } from '../NarthexCrmDbDataSource';
 
 const mockQuery = jest.fn();
-const mockErrorLogger = jest.fn();
 
 jest.mock('../MySqlDataSource', () => ({
     MySqlDataSource: jest.fn().mockImplementation(() => ({
         query: mockQuery,
-        context: {
-            logger: {
-                error: mockErrorLogger,
-            },
-        },
     })),
 }));
 
@@ -267,7 +261,7 @@ describe('ministry', () => {
             });
         });
 
-        it('rejects invalid colors', async () => {
+        it('throws an error if an invalid color is provided', async () => {
             mockValidateColor.mockImplementation(() => false);
             mockValidateRecordName.mockImplementation(() => true);
 
@@ -285,7 +279,7 @@ describe('ministry', () => {
             expect(mockQuery).toHaveBeenCalledTimes(0);
         });
 
-        it('rejects invalid ministry names', async () => {
+        it('throws an error if an invalid name is provided', async () => {
             mockValidateColor.mockImplementation(() => true);
             mockValidateRecordName.mockImplementation(() => false);
 
@@ -321,6 +315,108 @@ describe('ministry', () => {
             expect(mockValidateColor).toBeCalled();
             expect(mockValidateRecordName).toBeCalled();
             expect(mockQuery).toBeCalled();
+        });
+    });
+
+    describe('updateMinistry', () => {
+        it('updates a ministry', async () => {
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 1,
+                    changedRows: 1,
+                })
+            );
+            mockValidateColor.mockImplementation(() => true);
+            mockValidateRecordName.mockImplementation(() => true);
+
+            await narthexCrmDbDataSource.updateMinistry(
+                {
+                    id: 1,
+                    color: '#000000',
+                    name: 'Council',
+                },
+                2
+            );
+
+            expect(mockQuery).toHaveBeenNthCalledWith(1, {
+                sql: sqlFormat(`
+                        UPDATE
+                            ministry
+                        SET
+                            name = ?,
+                            color = ?
+                        WHERE
+                            ID = ?;
+                    `),
+                values: ['Council', 0, 1],
+            });
+        });
+
+        it('throws an error if no changes are provided', async () => {
+            await expect(
+                narthexCrmDbDataSource.updateMinistry(
+                    {
+                        id: 1,
+                    },
+                    2
+                )
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockQuery).toHaveBeenCalledTimes(0);
+        });
+
+        it('throws an error if an invalid color is provided', async () => {
+            mockValidateColor.mockImplementation(() => false);
+
+            await expect(
+                narthexCrmDbDataSource.updateMinistry(
+                    {
+                        id: 1,
+                        color: 'red',
+                    },
+                    2
+                )
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockQuery).toHaveBeenCalledTimes(0);
+        });
+
+        it('throws an error if an invalid name is provided', async () => {
+            mockValidateRecordName.mockImplementation(() => false);
+
+            await expect(
+                narthexCrmDbDataSource.updateMinistry(
+                    {
+                        id: 1,
+                        name: 'a',
+                    },
+                    2
+                )
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockQuery).toHaveBeenCalledTimes(0);
+        });
+
+        it('throws an error if the client was not updated on the database', async () => {
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 0,
+                    changedRows: 0,
+                })
+            );
+
+            mockValidateColor.mockImplementation(() => true);
+            mockValidateRecordName.mockImplementation(() => true);
+
+            await expect(
+                narthexCrmDbDataSource.updateMinistry(
+                    {
+                        id: 1,
+                        name: 'Council',
+                    },
+                    2
+                )
+            ).rejects.toThrowError(DatabaseError);
         });
     });
 });
