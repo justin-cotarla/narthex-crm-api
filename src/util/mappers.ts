@@ -18,7 +18,7 @@ const mapClient = (dbClient: DBClient): Client => ({
 const mapMinistry = (dbMinistry: DBMinistry): Ministry => ({
     id: dbMinistry.id,
     name: dbMinistry.name,
-    color: `#${dbMinistry.color?.toString(16).toUpperCase()}`,
+    color: `#${dbMinistry.color?.toString(16).padStart(6, '0').toUpperCase()}`,
     createdBy: {
         id: dbMinistry.created_by!,
     },

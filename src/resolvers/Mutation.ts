@@ -57,6 +57,25 @@ const Mutation: MutationResolvers = {
         ]);
         return ministry;
     },
+    updateMinistry: async (
+        _,
+        { ministryUpdateInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.updateMinistry(
+            ministryUpdateInput,
+            clientToken!.id
+        );
+        const [ministry] = await narthexCrmDbDataSource.getMinistries([
+            ministryUpdateInput.id,
+        ]);
+
+        return ministry;
+    },
 };
 
 export { Mutation };

@@ -6,7 +6,7 @@ import { InMemoryLRUCache, KeyValueCache } from 'apollo-server-caching';
 import mysql, { Pool, PoolConfig, QueryOptions, MysqlError } from 'mysql';
 
 import { Context } from '../types/context';
-import { MySqlErrorCode } from '../util/enums';
+import { MySqlErrorCode } from '../types/database';
 import { DatabaseError, QueryError } from '../util/error';
 
 class MySqlDataSource extends DataSource {
@@ -45,7 +45,7 @@ class MySqlDataSource extends DataSource {
 
             if (options.values?.length > 0) {
                 this.context?.logger.debug(
-                    `SQL Query Values\n${options.values}`
+                    `SQL Query Values\n[${options.values.join(', ')}`
                 );
             }
 

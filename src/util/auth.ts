@@ -1,8 +1,6 @@
 import { ForbiddenError } from 'apollo-server';
 
-import { ClientToken } from '../types/auth';
-
-import { PermissionScope } from './enums';
+import { ClientToken, PermissionScope } from '../types/auth';
 
 const authorize = (
     clientToken: ClientToken | null,

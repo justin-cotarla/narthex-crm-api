@@ -8,12 +8,14 @@ import {
     DBInsertResponse,
     DBMinistry,
     DBUpdateResponse,
+    RecordTable,
 } from '../types/database';
 import {
     Client,
     ClientUpdateInput,
     Ministry,
     MinistryAddInput,
+    MinistryUpdateInput,
 } from '../types/generated/graphql';
 import { generateClientToken, hashPassword, verifyHash } from '../util/crypto';
 import { DatabaseError, NotFoundError } from '../util/error';
@@ -48,6 +50,30 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         if (!rows || rows.changedRows === 0) {
             this.context!.logger.error('Could not log client connections');
+        }
+    };
+
+    private logRecordChange = async (
+        table: RecordTable,
+        recordId: number,
+        clientId: number
+    ): Promise<void> => {
+        const sql = sqlFormat(`
+            UPDATE ${table}
+            SET
+                modified_by = ?,
+                modification_timestamp = CURRENT_TIMESTAMP
+            WHERE
+                 id = ?
+        `);
+
+        const rows = await this.query<DBUpdateResponse>({
+            sql,
+            values: [clientId, recordId],
+        });
+
+        if (!rows || rows.changedRows === 0) {
+            this.context!.logger.error('Could not log record change');
         }
     };
 
@@ -161,10 +187,10 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         const { id, active, password } = clientUpdateInput;
 
-        const setClause = buildSetClause({
-            pass_hash: password,
-            active,
-        });
+        const setClause = buildSetClause([
+            { key: 'pass_hash', condition: password !== undefined },
+            { key: 'active', condition: active !== undefined },
+        ]);
 
         const sql = sqlFormat(`
             UPDATE client
@@ -263,6 +289,54 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         }
 
         return rows.insertId;
+    };
+
+    updateMinistry = async (
+        ministryUpdateInput: MinistryUpdateInput,
+        clientId: number
+    ): Promise<void> => {
+        if (Object.keys(ministryUpdateInput).length <= 1) {
+            throw new UserInputError('Nothing to update');
+        }
+
+        const { id, name, color } = ministryUpdateInput;
+
+        if (color && !validateColor(color!)) {
+            throw new UserInputError('Invalid color');
+        }
+
+        if (name && !validateRecordName(name)) {
+            throw new UserInputError('Invalid ministry name');
+        }
+
+        const setClause = buildSetClause([
+            { key: 'name', condition: name !== undefined },
+            { key: 'color', condition: color !== undefined },
+        ]);
+
+        const sql = sqlFormat(`
+            UPDATE ministry
+                SET
+            ${setClause}
+            WHERE ID = ?;
+        `);
+
+        const values = [
+            ...(name ? [name] : []),
+            ...(color !== undefined ? [parseInt(color!.substring(1), 16)] : []),
+            id,
+        ];
+
+        const rows = await this.query<DBUpdateResponse>({
+            sql,
+            values,
+        });
+
+        if (!rows || rows.affectedRows === 0) {
+            throw new DatabaseError('Could not update ministry');
+        }
+
+        await this.logRecordChange(RecordTable.MINISTRY, id, clientId);
     };
 }
 

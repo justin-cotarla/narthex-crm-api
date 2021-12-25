@@ -1,6 +1,4 @@
-import { Config, ConfigFile } from '../types/config';
-
-import { LogLevel, LOG_LEVELS } from './enums';
+import { Config, ConfigFile, LogLevel, LOG_LEVELS } from '../types/config';
 
 const loadConfig = (): Config => {
     const {

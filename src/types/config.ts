@@ -1,6 +1,14 @@
 import type { PoolConfig } from 'mysql';
 
-import { LogLevel } from '../util/enums';
+const LOG_LEVELS = {
+    ERROR: 'error',
+    WARN: 'warn',
+    INFO: 'info',
+    VERBOSE: 'verbose',
+    DEBUG: 'debug',
+} as const;
+
+type LogLevel = typeof LOG_LEVELS[keyof typeof LOG_LEVELS];
 
 interface ConfigFile {
     SERVER_PORT: string;
@@ -26,4 +34,5 @@ interface Config {
     };
 }
 
-export type { ConfigFile, Config };
+export { LOG_LEVELS };
+export type { LogLevel, ConfigFile, Config };

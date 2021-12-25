@@ -1,9 +1,11 @@
-import { WhereOperation, WHERE_OPERATIONS } from './enums';
+import { WhereOperation, WHERE_OPERATIONS } from '../types/database';
 
-const buildSetClause = (conditions: Record<string, unknown>): string => {
-    const setClauses = Object.entries(conditions)
-        .filter(([, value]) => value !== undefined)
-        .map(([key]) => `${key} = ?`);
+const buildSetClause = (
+    conditions: { key: string; condition: boolean }[]
+): string => {
+    const setClauses = conditions
+        .filter(({ condition }) => condition)
+        .map(({ key }) => `${key} = ?`);
 
     return setClauses.join(',\n');
 };
