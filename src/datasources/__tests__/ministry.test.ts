@@ -397,7 +397,7 @@ describe('ministry', () => {
             expect(mockQuery).toHaveBeenCalledTimes(0);
         });
 
-        it('throws an error if the client was not updated on the database', async () => {
+        it('throws an error if the ministry was not updated on the database', async () => {
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -416,6 +416,42 @@ describe('ministry', () => {
                     },
                     2
                 )
+            ).rejects.toThrowError(DatabaseError);
+        });
+    });
+
+    describe('archiveMinistry', () => {
+        it('archives a ministry', async () => {
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 1,
+                    changedRows: 1,
+                })
+            );
+
+            await narthexCrmDbDataSource.archiveMinistry(1, 2);
+
+            expect(mockQuery).toHaveBeenNthCalledWith(1, {
+                sql: sqlFormat(`
+                    UPDATE ministry
+                    SET
+                        archived = 1
+                    WHERE ID = ?;
+                `),
+                values: [1],
+            });
+        });
+
+        it('throws an error if the ministry was not archived on the database', async () => {
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 0,
+                    changedRows: 0,
+                })
+            );
+
+            await expect(
+                narthexCrmDbDataSource.archiveMinistry(1, 2)
             ).rejects.toThrowError(DatabaseError);
         });
     });
