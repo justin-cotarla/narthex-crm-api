@@ -14,7 +14,10 @@ type Mutation {
 
     addMinistry(ministryAddInput: MinistryAddInput!): Ministry!
     updateMinistry(ministryUpdateInput: MinistryUpdateInput!): Ministry!
-    deleteMinistry(ministryId: Int!): Int!
+    deleteMinistry(ministryId: Int!): DeleteOutput!
 }
 
+type DeleteOutput {
+    id: Int!
+}
  

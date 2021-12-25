@@ -322,7 +322,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         const sql = sqlFormat(`
             UPDATE ministry
-                SET
+            SET
             ${setClause}
             WHERE ID = ?;
         `);
@@ -343,6 +343,29 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         }
 
         await this.logRecordChange(RecordTable.MINISTRY, id, clientId);
+    };
+
+    archiveMinistry = async (
+        ministryId: number,
+        clientId: number
+    ): Promise<void> => {
+        const sql = sqlFormat(`
+            UPDATE ministry
+            SET
+                archived = 1
+            WHERE ID = ?;
+        `);
+
+        const rows = await this.query<DBUpdateResponse>({
+            sql,
+            values: [ministryId],
+        });
+
+        if (!rows || rows.affectedRows === 0) {
+            throw new DatabaseError('Could not archive ministry');
+        }
+
+        await this.logRecordChange(RecordTable.MINISTRY, ministryId, clientId);
     };
 }
 
