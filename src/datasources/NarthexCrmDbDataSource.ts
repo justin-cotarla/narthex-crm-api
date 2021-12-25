@@ -106,7 +106,11 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         return rows.insertId;
     };
 
-    getClients = async (clientIds?: number[]): Promise<Client[]> => {
+    getClients = async (clientIds: number[]): Promise<Client[]> => {
+        const whereClause = buildWhereClause([
+            { clause: 'id in (?)', condition: clientIds?.length !== 0 },
+        ]);
+
         const sql = sqlFormat(`
             SELECT
                 id,
@@ -117,12 +121,14 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
                 active
             FROM
             client
-                ${clientIds ? 'WHERE id in (?)' : ''}
+                ${whereClause}
         `);
+
+        const values = [...(clientIds.length !== 0 ? [clientIds] : [])];
 
         const rows = await this.query<DBClient[]>({
             sql,
-            ...(clientIds ? { values: [clientIds] } : {}),
+            values,
         });
 
         if (!rows || rows.length === 0) {

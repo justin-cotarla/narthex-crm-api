@@ -124,7 +124,7 @@ describe('client', () => {
                 },
             ]);
 
-            const result = await narthexCrmDbDataSource.getClients();
+            const result = await narthexCrmDbDataSource.getClients([]);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -138,6 +138,7 @@ describe('client', () => {
                     FROM
                     client
                 `),
+                values: [],
             });
             expect(spyMapClient).toHaveBeenCalled();
             expect(result).toStrictEqual([

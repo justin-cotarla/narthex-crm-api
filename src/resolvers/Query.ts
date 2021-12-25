@@ -40,7 +40,7 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const clients = await narthexCrmDbDataSource.getClients();
+        const clients = await narthexCrmDbDataSource.getClients([]);
         return clients;
     },
     ministries: async (
