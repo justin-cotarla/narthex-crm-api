@@ -15,7 +15,11 @@ import {
 } from '../../util/crypto';
 import { NotFoundError, DatabaseError } from '../../util/error';
 import { mapClient } from '../../util/mappers';
-import { buildWhereClause, buildSetClause } from '../../util/query';
+import {
+    buildWhereClause,
+    buildSetClause,
+    buildInsertClause,
+} from '../../util/query';
 import { validateEmail } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
@@ -32,11 +36,16 @@ const addClient = async (
 
     const passwordHash = await hashPassword(password);
 
+    const insertClause = buildInsertClause([
+        { key: 'email_address', condition: true },
+        { key: 'pass_hash', condition: true },
+    ]);
+
     const sql = sqlFormat(`
         INSERT INTO client
-            (email_address, pass_hash)
+            ${insertClause.insert}
         VALUES
-            (?, ?)
+            ${insertClause.values}
     `);
 
     const rows = await query<DBInsertResponse>({

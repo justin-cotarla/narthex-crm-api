@@ -14,7 +14,11 @@ import {
 } from '../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../util/error';
 import { mapMinistry } from '../../util/mappers';
-import { buildWhereClause, buildSetClause } from '../../util/query';
+import {
+    buildWhereClause,
+    buildSetClause,
+    buildInsertClause,
+} from '../../util/query';
 import { validateColor, validateRecordName } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
@@ -78,11 +82,18 @@ const addMinistry = async (
 
     validateMinistryProperties(ministryAddInput);
 
+    const insertClause = buildInsertClause([
+        { key: 'name', condition: true },
+        { key: 'color', condition: true },
+        { key: 'created_by', condition: true },
+        { key: 'modified_by', condition: true },
+    ]);
+
     const sql = sqlFormat(`
         INSERT INTO ministry
-            (name, color, created_by, modified_by)
+            ${insertClause.insert}
         VALUES
-            (?, ?, ?, ?)
+            ${insertClause.values}
     `);
 
     const rows = await query<DBInsertResponse>({
