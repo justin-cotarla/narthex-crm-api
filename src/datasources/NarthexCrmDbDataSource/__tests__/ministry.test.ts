@@ -2,31 +2,29 @@ import { UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
-import { DBMinistry, DBUpdateResponse } from '../../types/database';
-import { DatabaseError } from '../../util/error';
-import * as mappers from '../../util/mappers';
-import { validateRecordName, validateColor } from '../../util/validation';
-import { NarthexCrmDbDataSource } from '../NarthexCrmDbDataSource';
+import { DBMinistry, DBUpdateResponse } from '../../../types/database';
+import { DatabaseError } from '../../../util/error';
+import * as mappers from '../../../util/mappers';
+import { validateRecordName, validateColor } from '../../../util/validation';
+import {
+    addMinistry,
+    archiveMinistry,
+    getMinistries,
+    updateMinistry,
+} from '../ministry';
 
 const mockQuery = jest.fn();
+const mockLogRecordChange = jest.fn();
 
-jest.mock('../MySqlDataSource', () => ({
-    MySqlDataSource: jest.fn().mockImplementation(() => ({
-        query: mockQuery,
-        cacheQuery: mockQuery,
-    })),
-}));
-
-jest.mock('../../util/validation');
+jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName);
 const mockValidateColor = mocked(validateColor);
 
 const spyMapMinistry = spyOn(mappers, 'mapMinistry');
 
-const narthexCrmDbDataSource = new NarthexCrmDbDataSource({});
-
 beforeEach(() => {
     mockQuery.mockClear();
+    mockLogRecordChange.mockClear();
 });
 
 describe('ministry', () => {
@@ -59,7 +57,7 @@ describe('ministry', () => {
                 },
             ]);
 
-            const result = await narthexCrmDbDataSource.getMinistries([], true);
+            const result = await getMinistries(mockQuery, [], true);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -124,7 +122,7 @@ describe('ministry', () => {
                 },
             ]);
 
-            const result = await narthexCrmDbDataSource.getMinistries([]);
+            const result = await getMinistries(mockQuery, []);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -177,7 +175,7 @@ describe('ministry', () => {
                 },
             ]);
 
-            const result = await narthexCrmDbDataSource.getMinistries([1]);
+            const result = await getMinistries(mockQuery, [1]);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -219,7 +217,7 @@ describe('ministry', () => {
         it('returns an empty array if there are not ministries', async () => {
             mockQuery.mockImplementation((): DBMinistry[] => []);
 
-            const result = await narthexCrmDbDataSource.getMinistries([4]);
+            const result = await getMinistries(mockQuery, [4]);
 
             expect(result).toEqual([]);
         });
@@ -238,7 +236,8 @@ describe('ministry', () => {
             mockValidateColor.mockImplementation(() => true);
             mockValidateRecordName.mockImplementation(() => true);
 
-            const result = await narthexCrmDbDataSource.addMinistry(
+            const result = await addMinistry(
+                mockQuery,
                 {
                     name: 'Choir',
                     color: '#FFFFFF',
@@ -265,7 +264,8 @@ describe('ministry', () => {
             mockValidateRecordName.mockImplementation(() => true);
 
             expect(
-                narthexCrmDbDataSource.addMinistry(
+                addMinistry(
+                    mockQuery,
                     {
                         name: 'Choir',
                         color: 'purple',
@@ -283,7 +283,8 @@ describe('ministry', () => {
             mockValidateRecordName.mockImplementation(() => false);
 
             expect(
-                narthexCrmDbDataSource.addMinistry(
+                addMinistry(
+                    mockQuery,
                     {
                         name: 'a',
                         color: '#FFFFFF',
@@ -302,7 +303,8 @@ describe('ministry', () => {
             mockValidateRecordName.mockImplementation(() => true);
 
             await expect(
-                narthexCrmDbDataSource.addMinistry(
+                addMinistry(
+                    mockQuery,
                     {
                         name: 'Choir',
                         color: '#FFFFFF',
@@ -328,7 +330,9 @@ describe('ministry', () => {
             mockValidateColor.mockImplementation(() => true);
             mockValidateRecordName.mockImplementation(() => true);
 
-            await narthexCrmDbDataSource.updateMinistry(
+            await updateMinistry(
+                mockQuery,
+                mockLogRecordChange,
                 {
                     id: 1,
                     color: '#000000',
@@ -349,11 +353,15 @@ describe('ministry', () => {
                     `),
                 values: ['Council', 0, 1],
             });
+
+            expect(mockLogRecordChange).toHaveBeenCalledWith('ministry', 1, 2);
         });
 
         it('throws an error if no changes are provided', async () => {
             await expect(
-                narthexCrmDbDataSource.updateMinistry(
+                updateMinistry(
+                    mockQuery,
+                    mockLogRecordChange,
                     {
                         id: 1,
                     },
@@ -368,7 +376,9 @@ describe('ministry', () => {
             mockValidateColor.mockImplementation(() => false);
 
             await expect(
-                narthexCrmDbDataSource.updateMinistry(
+                updateMinistry(
+                    mockQuery,
+                    mockLogRecordChange,
                     {
                         id: 1,
                         color: 'red',
@@ -384,7 +394,9 @@ describe('ministry', () => {
             mockValidateRecordName.mockImplementation(() => false);
 
             await expect(
-                narthexCrmDbDataSource.updateMinistry(
+                updateMinistry(
+                    mockQuery,
+                    mockLogRecordChange,
                     {
                         id: 1,
                         name: 'a',
@@ -408,7 +420,9 @@ describe('ministry', () => {
             mockValidateRecordName.mockImplementation(() => true);
 
             await expect(
-                narthexCrmDbDataSource.updateMinistry(
+                updateMinistry(
+                    mockQuery,
+                    mockLogRecordChange,
                     {
                         id: 1,
                         name: 'Council',
@@ -428,7 +442,7 @@ describe('ministry', () => {
                 })
             );
 
-            await narthexCrmDbDataSource.archiveMinistry(1, 2);
+            await archiveMinistry(mockQuery, mockLogRecordChange, 1, 2);
 
             expect(mockQuery).toHaveBeenNthCalledWith(1, {
                 sql: sqlFormat(`
@@ -439,6 +453,7 @@ describe('ministry', () => {
                 `),
                 values: [1],
             });
+            expect(mockLogRecordChange).toHaveBeenCalledWith('ministry', 1, 2);
         });
 
         it('throws an error if the ministry was not archived on the database', async () => {
@@ -450,7 +465,7 @@ describe('ministry', () => {
             );
 
             await expect(
-                narthexCrmDbDataSource.archiveMinistry(1, 2)
+                archiveMinistry(mockQuery, mockLogRecordChange, 1, 2)
             ).rejects.toThrowError(DatabaseError);
         });
     });

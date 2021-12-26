@@ -74,7 +74,7 @@ class MySqlDataSource extends DataSource {
                 throw new DuplicateEntryError();
             }
 
-            throw new DatabaseError(e.message);
+            throw e;
         }
     }
 

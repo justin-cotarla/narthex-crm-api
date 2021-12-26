@@ -2,36 +2,29 @@ import { ForbiddenError, UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
-import { DBClient, DBUpdateResponse } from '../../types/database';
+import { DBClient, DBUpdateResponse } from '../../../types/database';
 import {
     hashPassword,
     verifyHash,
     generateClientToken,
-} from '../../util/crypto';
-import { DatabaseError, NotFoundError } from '../../util/error';
-import * as mappers from '../../util/mappers';
-import { validateEmail } from '../../util/validation';
-import { NarthexCrmDbDataSource } from '../NarthexCrmDbDataSource';
+} from '../../../util/crypto';
+import { DatabaseError, NotFoundError } from '../../../util/error';
+import * as mappers from '../../../util/mappers';
+import { validateEmail } from '../../../util/validation';
+import { addClient, getClients, getToken, updateClient } from '../clients';
 
 const mockQuery = jest.fn();
+const mockLogClientConnection = jest.fn();
 
-jest.mock('../MySqlDataSource', () => ({
-    MySqlDataSource: jest.fn().mockImplementation(() => ({
-        query: mockQuery,
-    })),
-}));
-
-jest.mock('../../util/crypto');
+jest.mock('../../../util/crypto');
 const mockHashPassword = mocked(hashPassword);
 
-jest.mock('../../util/validation');
+jest.mock('../../../util/validation');
 const mockValidateEmail = mocked(validateEmail);
 const mockVerifyHash = mocked(verifyHash);
 const mockGenerateClientToken = mocked(generateClientToken);
 
 const spyMapClient = spyOn(mappers, 'mapClient');
-
-const narthexCrmDbDataSource = new NarthexCrmDbDataSource({});
 
 beforeEach(() => {
     mockQuery.mockClear();
@@ -52,7 +45,8 @@ describe('client', () => {
             mockValidateEmail.mockImplementation(() => true);
             mockHashPassword.mockImplementation(async () => 'hash');
 
-            const result = await narthexCrmDbDataSource.addClient(
+            const result = await addClient(
+                mockQuery,
                 'email@test.com',
                 'qwerty'
             );
@@ -75,7 +69,7 @@ describe('client', () => {
             mockValidateEmail.mockImplementation(() => false);
 
             expect(
-                narthexCrmDbDataSource.addClient('malformed', 'qwerty')
+                addClient(mockQuery, 'malformed', 'qwerty')
             ).rejects.toThrowError(UserInputError);
 
             expect(mockValidateEmail).toBeCalled();
@@ -88,7 +82,7 @@ describe('client', () => {
             mockValidateEmail.mockImplementation(() => true);
 
             await expect(
-                narthexCrmDbDataSource.addClient('email@example.com', 'qwerty')
+                addClient(mockQuery, 'email@example.com', 'qwerty')
             ).rejects.toThrowError(Error);
 
             expect(mockValidateEmail).toBeCalled();
@@ -124,7 +118,7 @@ describe('client', () => {
                 },
             ]);
 
-            const result = await narthexCrmDbDataSource.getClients([]);
+            const result = await getClients(mockQuery, []);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -183,7 +177,7 @@ describe('client', () => {
                 },
             ]);
 
-            const result = await narthexCrmDbDataSource.getClients([1, 2]);
+            const result = await getClients(mockQuery, [1, 2]);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -224,7 +218,7 @@ describe('client', () => {
         it('returns an empty array if there are not clients', async () => {
             mockQuery.mockImplementation((): DBClient[] => []);
 
-            const result = await narthexCrmDbDataSource.getClients([4]);
+            const result = await getClients(mockQuery, [4]);
 
             expect(result).toEqual([]);
         });
@@ -251,7 +245,9 @@ describe('client', () => {
             mockVerifyHash.mockImplementation(async () => true);
             mockGenerateClientToken.mockImplementation(async () => 'token');
 
-            const result = await narthexCrmDbDataSource.getToken(
+            const result = await getToken(
+                mockQuery,
+                mockLogClientConnection,
                 'email@example.com',
                 'password',
                 'secret'
@@ -270,13 +266,16 @@ describe('client', () => {
 
             expect(mockVerifyHash).toBeCalled();
             expect(result).toStrictEqual('token');
+            expect(mockLogClientConnection).toHaveBeenCalledWith(1);
         });
 
         it('throws an error if the account does not exist', async () => {
             mockQuery.mockImplementation((): DBClient[] => []);
 
             await expect(
-                narthexCrmDbDataSource.getToken(
+                getToken(
+                    mockQuery,
+                    mockLogClientConnection,
                     'email@example.com',
                     'password',
                     'secret'
@@ -301,7 +300,9 @@ describe('client', () => {
             ]);
 
             await expect(
-                narthexCrmDbDataSource.getToken(
+                getToken(
+                    mockQuery,
+                    mockLogClientConnection,
                     'email@example.com',
                     'password',
                     'secret'
@@ -327,7 +328,9 @@ describe('client', () => {
             mockVerifyHash.mockImplementation(async () => false);
 
             await expect(
-                narthexCrmDbDataSource.getToken(
+                getToken(
+                    mockQuery,
+                    mockLogClientConnection,
                     'email@example.com',
                     'password',
                     'secret'
@@ -349,7 +352,7 @@ describe('client', () => {
             );
             mockHashPassword.mockImplementation(async () => 'hash');
 
-            await narthexCrmDbDataSource.updateClient({
+            await updateClient(mockQuery, {
                 id: 1,
                 active: false,
                 password: 'password',
@@ -369,7 +372,7 @@ describe('client', () => {
 
         it('throws an error if no changes are provided', async () => {
             await expect(
-                narthexCrmDbDataSource.updateClient({
+                updateClient(mockQuery, {
                     id: 1,
                 })
             ).rejects.toThrowError(UserInputError);
@@ -386,7 +389,7 @@ describe('client', () => {
             );
 
             await expect(
-                narthexCrmDbDataSource.updateClient({
+                updateClient(mockQuery, {
                     id: 1,
                     active: false,
                 })

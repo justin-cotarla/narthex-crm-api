@@ -1,12 +1,12 @@
 import { format as sqlFormat } from 'sql-formatter';
 
-import { RecordTable } from '../../types/database';
-import { NarthexCrmDbDataSource } from '../NarthexCrmDbDataSource';
+import { NarthexCrmDbDataSource } from '../';
+import { RecordTable } from '../../../types/database';
 
 const mockQuery = jest.fn();
 const mockErrorLogger = jest.fn();
 
-jest.mock('../MySqlDataSource', () => ({
+jest.mock('../../MySqlDataSource', () => ({
     MySqlDataSource: jest.fn().mockImplementation(() => ({
         query: mockQuery,
         context: {
