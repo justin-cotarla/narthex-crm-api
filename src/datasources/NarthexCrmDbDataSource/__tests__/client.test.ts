@@ -11,7 +11,7 @@ import {
 import { DatabaseError, NotFoundError } from '../../../util/error';
 import * as mappers from '../../../util/mappers';
 import { validateEmail } from '../../../util/validation';
-import { addClient, getClients, getToken, updateClient } from '../clients';
+import { addClient, getClients, getToken, updateClient } from '../client';
 
 const mockQuery = jest.fn();
 const mockLogClientConnection = jest.fn();
@@ -255,11 +255,16 @@ describe('client', () => {
 
             expect(mockQuery).toHaveBeenNthCalledWith(1, {
                 sql: sqlFormat(`
-                    SELECT id, email_address, permission_scope, active, pass_hash
-                    FROM
-                    client
-                    WHERE
-                        email_address LIKE ?
+                        SELECT
+                            id,
+                            email_address,
+                            permission_scope,
+                            active,
+                            pass_hash
+                        FROM
+                            client
+                        WHERE
+                            email_address LIKE ?
                 `),
                 values: ['email@example.com'],
             });
@@ -344,7 +349,8 @@ describe('client', () => {
 
     describe('updateClient', () => {
         it('updates a client', async () => {
-            mockQuery.mockImplementation(
+            mockQuery.mockImplementationOnce((): DBClient[] => [{ id: 1 }]);
+            mockQuery.mockImplementationOnce(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
                     changedRows: 1,
@@ -359,29 +365,45 @@ describe('client', () => {
             });
 
             expect(mockQuery).toHaveBeenCalledWith({
-                sql: sqlFormat(`UPDATE
-                    client
-                    SET
-                    pass_hash = ?,
-                    active = ?
-                    WHERE
-                    ID = ?;`),
+                sql: sqlFormat(`
+                    UPDATE
+                        client
+                        SET
+                        pass_hash = ?,
+                        active = ?
+                        WHERE
+                        ID = ?;`),
                 values: ['hash', 0, 1],
             });
         });
 
+        it('throws an error if no the client does not exists', async () => {
+            mockQuery.mockImplementation((): DBClient[] => []);
+
+            await expect(
+                updateClient(mockQuery, {
+                    id: 10,
+                })
+            ).rejects.toThrowError(NotFoundError);
+
+            expect(mockQuery).toHaveBeenCalledTimes(1);
+        });
+
         it('throws an error if no changes are provided', async () => {
+            mockQuery.mockImplementationOnce((): DBClient[] => [{ id: 1 }]);
+
             await expect(
                 updateClient(mockQuery, {
                     id: 1,
                 })
             ).rejects.toThrowError(UserInputError);
 
-            expect(mockQuery).toHaveBeenCalledTimes(0);
+            expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
         it('throws an error if the client was not updated on the database', async () => {
-            mockQuery.mockImplementation(
+            mockQuery.mockImplementationOnce((): DBClient[] => [{ id: 1 }]);
+            mockQuery.mockImplementationOnce(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
                     changedRows: 0,

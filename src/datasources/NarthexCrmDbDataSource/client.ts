@@ -133,11 +133,17 @@ const updateClient = async (
     query: MySqlDataSource['query'],
     clientUpdateInput: ClientUpdateInput
 ): Promise<void> => {
+    const { id, active, password } = clientUpdateInput;
+
+    const [client] = await getClients(query, [id]);
+
+    if (!client) {
+        throw new NotFoundError('Client does not exist');
+    }
+
     if (Object.keys(clientUpdateInput).length <= 1) {
         throw new UserInputError('Nothing to update');
     }
-
-    const { id, active, password } = clientUpdateInput;
 
     const setClause = buildSetClause([
         { key: 'pass_hash', condition: password !== undefined },

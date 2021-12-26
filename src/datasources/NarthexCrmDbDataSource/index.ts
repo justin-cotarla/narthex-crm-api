@@ -4,7 +4,7 @@ import { format as sqlFormat } from 'sql-formatter';
 import { DBUpdateResponse, RecordTable } from '../../types/database';
 import { MySqlDataSource } from '../MySqlDataSource';
 
-import { addClient, getClients, getToken, updateClient } from './clients';
+import { addClient, getClients, getToken, updateClient } from './client';
 import {
     addMinistry,
     archiveMinistry,
