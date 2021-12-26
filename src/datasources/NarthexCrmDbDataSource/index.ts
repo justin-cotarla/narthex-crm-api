@@ -11,6 +11,7 @@ import {
     getMinistries,
     updateMinistry,
 } from './ministry';
+import { addPerson, archivePerson, getPeople, updatePerson } from './person';
 
 type Tail<T extends unknown[]> = T extends [unknown, ...infer U] ? U : never;
 
@@ -66,7 +67,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         addClient(this.query.bind(this), ...args);
 
     getClients = (...args: Tail<Parameters<typeof getClients>>) =>
-        getClients(this.query.bind(this), ...args);
+        getClients(this.cacheQuery.bind(this), ...args);
 
     getToken = (...args: Tail<Tail<Parameters<typeof getToken>>>) =>
         getToken(
@@ -75,11 +76,11 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             ...args
         );
 
-    updateClient = (...args: Tail<Parameters<typeof updateClient>>) =>
-        updateClient(this.query.bind(this), ...args);
-
     getMinistries = (...args: Tail<Parameters<typeof getMinistries>>) =>
         getMinistries(this.cacheQuery.bind(this), ...args);
+
+    updateClient = (...args: Tail<Parameters<typeof updateClient>>) =>
+        updateClient(this.query.bind(this), ...args);
 
     addMinistry = (...args: Tail<Parameters<typeof addMinistry>>) =>
         addMinistry(this.query.bind(this), ...args);
@@ -95,6 +96,26 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         ...args: Tail<Tail<Parameters<typeof archiveMinistry>>>
     ) =>
         archiveMinistry(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    getPeople = (...args: Tail<Parameters<typeof getPeople>>) =>
+        getPeople(this.cacheQuery.bind(this), ...args);
+
+    addPerson = (...args: Tail<Parameters<typeof addPerson>>) =>
+        addPerson(this.query.bind(this), ...args);
+
+    updatePerson = (...args: Tail<Tail<Parameters<typeof updatePerson>>>) =>
+        updatePerson(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    archivePerson = (...args: Tail<Tail<Parameters<typeof archivePerson>>>) =>
+        archivePerson(
             this.query.bind(this),
             this.logRecordChange.bind(this),
             ...args

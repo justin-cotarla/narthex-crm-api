@@ -74,6 +74,18 @@ const Query: QueryResolvers = {
 
         return ministry;
     },
+    people: async (
+        _,
+        { archived },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const people = await narthexCrmDbDataSource.getPeople([], archived);
+        return people;
+    },
 };
 
 export { Query };

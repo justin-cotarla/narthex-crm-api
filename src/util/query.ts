@@ -10,6 +10,22 @@ const buildSetClause = (
     return setClauses.join(',\n');
 };
 
+const buildInsertClause = (
+    conditions: { key: string; condition: boolean }[]
+): {
+    insert: string;
+    values: string;
+} => {
+    const setClauses = conditions
+        .filter(({ condition }) => condition)
+        .map(({ key }) => key);
+
+    return {
+        insert: `(${setClauses.join(',\n')})`,
+        values: `(${setClauses.map(() => '?')})`,
+    };
+};
+
 const buildWhereClause = (
     conditions: { clause: string; condition: boolean }[],
     options: {
@@ -30,4 +46,4 @@ const buildWhereClause = (
     return `${includeWhere ? 'WHERE ' : ''}${whereClauses.join(operation)}`;
 };
 
-export { buildSetClause, buildWhereClause };
+export { buildSetClause, buildWhereClause, buildInsertClause };

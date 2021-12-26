@@ -1,3 +1,5 @@
+import { Gender } from './generated/graphql';
+
 const WHERE_OPERATIONS = {
     AND: ' and ',
     OR: ' or ',
@@ -11,6 +13,15 @@ enum MySqlErrorCode {
 
 enum RecordTable {
     MINISTRY = 'ministry',
+    PERSON = 'person',
+}
+
+interface DBRecord {
+    created_by?: number;
+    creation_timestamp?: Date;
+    modified_by?: number;
+    modification_timestamp?: Date;
+    archived?: number;
 }
 
 interface DBClient {
@@ -23,15 +34,22 @@ interface DBClient {
     pass_hash?: string;
 }
 
-interface DBMinistry {
+interface DBMinistry extends DBRecord {
     id: number;
     name?: string;
     color?: number;
-    created_by?: number;
-    creation_timestamp?: Date;
-    modified_by?: number;
-    modification_timestamp?: Date;
-    archived?: number;
+}
+
+interface DBPerson extends DBRecord {
+    id: number;
+    // household_id: ;
+    first_name: string;
+    last_name: string;
+    gender: Gender;
+    primary_phone_number: string;
+    email_address: string;
+    birth_date: string;
+    title: string;
 }
 
 interface DBInsertResponse {
@@ -47,8 +65,10 @@ export { WHERE_OPERATIONS, MySqlErrorCode, RecordTable };
 
 export type {
     WhereOperation,
-    DBClient,
     DBUpdateResponse,
     DBInsertResponse,
+    DBRecord,
+    DBClient,
     DBMinistry,
+    DBPerson,
 };

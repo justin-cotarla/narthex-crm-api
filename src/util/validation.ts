@@ -12,4 +12,9 @@ const validateRecordName = (recordName: string): boolean => {
     return recordName.length >= 3;
 };
 
-export { validateEmail, validateColor, validateRecordName };
+const validateBirthDate = (birthDateString: string): boolean => {
+    const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    return birthDateRegex.test(birthDateString);
+};
+
+export { validateEmail, validateColor, validateRecordName, validateBirthDate };

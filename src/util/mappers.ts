@@ -1,7 +1,22 @@
-import { getUnixTime } from 'date-fns';
+import { differenceInYears, getUnixTime, parse } from 'date-fns';
 
-import { DBClient, DBMinistry } from '../types/database';
-import { Client, Ministry } from '../types/generated/graphql';
+import { DBClient, DBMinistry, DBPerson, DBRecord } from '../types/database';
+import { Client, Ministry, Person, Record } from '../types/generated/graphql';
+
+const mapRecord = (dbRecord: DBRecord): Record => ({
+    createdBy: {
+        id: dbRecord.created_by!,
+    },
+    creationTimestamp:
+        dbRecord.creation_timestamp && getUnixTime(dbRecord.creation_timestamp),
+    modifiedBy: {
+        id: dbRecord.modified_by!,
+    },
+    modificationTimestamp:
+        dbRecord.modification_timestamp &&
+        getUnixTime(dbRecord.modification_timestamp),
+    archived: Boolean(dbRecord.archived),
+});
 
 const mapClient = (dbClient: DBClient): Client => ({
     id: dbClient.id,
@@ -19,19 +34,23 @@ const mapMinistry = (dbMinistry: DBMinistry): Ministry => ({
     id: dbMinistry.id,
     name: dbMinistry.name,
     color: `#${dbMinistry.color?.toString(16).padStart(6, '0').toUpperCase()}`,
-    createdBy: {
-        id: dbMinistry.created_by!,
-    },
-    creationTimestamp:
-        dbMinistry.creation_timestamp &&
-        getUnixTime(dbMinistry.creation_timestamp),
-    modifiedBy: {
-        id: dbMinistry.modified_by!,
-    },
-    modificationTimestamp:
-        dbMinistry.modification_timestamp &&
-        getUnixTime(dbMinistry.modification_timestamp),
-    archived: Boolean(dbMinistry.archived),
+    ...mapRecord(dbMinistry),
 });
 
-export { mapClient, mapMinistry };
+const mapPerson = (dbPerson: DBPerson): Person => ({
+    id: dbPerson.id,
+    firstName: dbPerson.first_name,
+    lastName: dbPerson.last_name,
+    gender: dbPerson.gender,
+    phoneNumber: dbPerson.primary_phone_number,
+    emailAddress: dbPerson.email_address,
+    birthDate: dbPerson.birth_date,
+    title: dbPerson.title,
+    age: differenceInYears(
+        new Date(),
+        parse(dbPerson.birth_date, 'yyyy-MM-dd', new Date())
+    ),
+    ...mapRecord(dbPerson),
+});
+
+export { mapClient, mapMinistry, mapPerson };

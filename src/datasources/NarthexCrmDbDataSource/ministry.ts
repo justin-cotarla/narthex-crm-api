@@ -21,7 +21,7 @@ import { MySqlDataSource } from '../MySqlDataSource';
 import { NarthexCrmDbDataSource } from './';
 
 const getMinistries = async (
-    query: MySqlDataSource['query'] | MySqlDataSource['cacheQuery'],
+    query: MySqlDataSource['query'],
     ministryIds: number[],
     archived?: boolean | null
 ): Promise<Ministry[]> => {
