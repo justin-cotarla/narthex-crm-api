@@ -215,14 +215,12 @@ describe('ministry', () => {
             ]);
         });
 
-        it('throws an error if none of the ministries exists', async () => {
+        it('returns an empty array if there are not ministries', async () => {
             mockQuery.mockImplementation((): DBMinistry[] => []);
 
-            await expect(
-                narthexCrmDbDataSource.getMinistries([4])
-            ).rejects.toThrowError(NotFoundError);
+            const result = await narthexCrmDbDataSource.getMinistries([4]);
 
-            expect(spyMapMinistry).toHaveBeenCalledTimes(0);
+            expect(result).toEqual([]);
         });
     });
     describe('addMinistry', () => {

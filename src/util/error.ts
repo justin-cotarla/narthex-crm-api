@@ -8,14 +8,6 @@ class NotFoundError extends ApolloError {
     }
 }
 
-class QueryError extends ApolloError {
-    constructor(message: string) {
-        super(message, 'QUERY_ERROR');
-
-        Object.defineProperty(this, 'name', { value: 'QueryError' });
-    }
-}
-
 class DatabaseError extends ApolloError {
     constructor(message: string) {
         super(message, 'DATABASE_ERROR');
@@ -24,4 +16,12 @@ class DatabaseError extends ApolloError {
     }
 }
 
-export { NotFoundError, QueryError, DatabaseError };
+class DuplicateEntryError extends ApolloError {
+    constructor() {
+        super('Duplicate entry', 'DUPLICATE_ENTRY');
+
+        Object.defineProperty(this, 'name', { value: 'DuplicateEntryError' });
+    }
+}
+
+export { NotFoundError, DatabaseError, DuplicateEntryError };

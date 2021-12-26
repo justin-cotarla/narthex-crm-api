@@ -131,11 +131,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             values,
         });
 
-        if (!rows || rows.length === 0) {
-            throw new NotFoundError('Client does not exist');
-        }
-
-        return rows.map(mapClient);
+        return rows?.map(mapClient) ?? [];
     };
 
     getToken = async (
@@ -252,11 +248,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             values,
         });
 
-        if (!rows || rows.length === 0) {
-            throw new NotFoundError('Ministry does not exist');
-        }
-
-        return rows.map(mapMinistry);
+        return rows?.map(mapMinistry) ?? [];
     };
 
     addMinistry = async (

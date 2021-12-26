@@ -7,7 +7,7 @@ import mysql, { Pool, PoolConfig, QueryOptions, MysqlError } from 'mysql';
 
 import { Context } from '../types/context';
 import { MySqlErrorCode } from '../types/database';
-import { DatabaseError, QueryError } from '../util/error';
+import { DatabaseError, DuplicateEntryError } from '../util/error';
 
 class MySqlDataSource extends DataSource {
     protected context?: Context;
@@ -63,14 +63,14 @@ class MySqlDataSource extends DataSource {
             return results as T;
         } catch (e) {
             if (!(e instanceof Error)) {
-                throw new QueryError('Query could not be executed');
+                throw new DatabaseError('Query could not be executed');
             }
 
             if ((e as MysqlError).errno === MySqlErrorCode.DUPLICATE_ENTRY) {
-                throw new DatabaseError('Duplicate Entry');
+                throw new DuplicateEntryError();
             }
 
-            throw new QueryError(e.message);
+            throw new DatabaseError(e.message);
         }
     }
 

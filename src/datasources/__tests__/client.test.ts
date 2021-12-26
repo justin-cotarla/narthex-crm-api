@@ -221,14 +221,12 @@ describe('client', () => {
             ]);
         });
 
-        it('throws an error if none of the clients exists', async () => {
+        it('returns an empty array if there are not clients', async () => {
             mockQuery.mockImplementation((): DBClient[] => []);
 
-            await expect(
-                narthexCrmDbDataSource.getClients([4])
-            ).rejects.toThrowError(NotFoundError);
+            const result = await narthexCrmDbDataSource.getClients([4]);
 
-            expect(spyMapClient).toHaveBeenCalledTimes(0);
+            expect(result).toEqual([]);
         });
     });
 

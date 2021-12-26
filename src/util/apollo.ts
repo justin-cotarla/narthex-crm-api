@@ -5,7 +5,8 @@ import { mergeTypeDefs } from '@graphql-tools/merge';
 import { ContextFunction } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
 import { ApolloServerPlugin } from 'apollo-server-plugin-base';
-import { FieldNode } from 'graphql';
+import { FieldNode, GraphQLError } from 'graphql';
+import { Logger } from 'winston';
 
 import { createDataLoaders } from '../dataloaders';
 import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
@@ -25,6 +26,24 @@ const loadTypeDefs = async () => {
 };
 
 const DO_NOT_LOG = ['getToken', 'addClient', 'updateClient'];
+
+const logError = (error: GraphQLError, logger: Logger) => {
+    switch (error.extensions.code) {
+        case 'DUPLICATE_ENTRY':
+        case 'RESOURCE_NOT_FOUND':
+        case 'FORBIDDEN':
+            logger.warn(`${error.name} - ${error.message}`);
+            break;
+
+        case 'DATABASE_ERROR':
+            logger.error(`${error.name} - ${error.message}`);
+            logger.error(error.stack);
+            break;
+
+        default:
+            logger.error(`${error.name} - ${error.message}`);
+    }
+};
 
 const ApolloLoggingPlugin: () => ApolloServerPlugin =
     (): ApolloServerPlugin<Context> => ({
@@ -63,9 +82,7 @@ const ApolloLoggingPlugin: () => ApolloServerPlugin =
                 }
             },
             didEncounterErrors: async ({ context: { logger }, errors }) => {
-                errors.forEach((error) =>
-                    logger.warn(`${error.name} - ${error.message}`)
-                );
+                errors.forEach((error) => logError(error, logger));
             },
         }),
     });
