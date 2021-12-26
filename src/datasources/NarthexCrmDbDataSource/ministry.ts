@@ -20,6 +20,20 @@ import { MySqlDataSource } from '../MySqlDataSource';
 
 import { NarthexCrmDbDataSource } from './';
 
+const validateMinistryProperties = (
+    ministryInput: MinistryAddInput | MinistryUpdateInput
+) => {
+    const { name, color } = ministryInput;
+
+    if (color && !validateColor(color!)) {
+        throw new UserInputError('Invalid color');
+    }
+
+    if (name && !validateRecordName(name)) {
+        throw new UserInputError('Invalid ministry name');
+    }
+};
+
 const getMinistries = async (
     query: MySqlDataSource['query'],
     ministryIds: number[],
@@ -62,13 +76,7 @@ const addMinistry = async (
 ): Promise<number> => {
     const { name, color = '#B3BFB8' } = ministryAddInput;
 
-    if (!validateColor(color!)) {
-        throw new UserInputError('Invalid color');
-    }
-
-    if (!validateRecordName(name)) {
-        throw new UserInputError('Invalid ministry name');
-    }
+    validateMinistryProperties(ministryAddInput);
 
     const sql = sqlFormat(`
         INSERT INTO ministry
@@ -107,13 +115,7 @@ const updateMinistry = async (
         throw new UserInputError('Nothing to update');
     }
 
-    if (color && !validateColor(color!)) {
-        throw new UserInputError('Invalid color');
-    }
-
-    if (name && !validateRecordName(name)) {
-        throw new UserInputError('Invalid ministry name');
-    }
+    validateMinistryProperties(ministryUpdateInput);
 
     const setClause = buildSetClause([
         { key: 'name', condition: name !== undefined },
