@@ -12,7 +12,7 @@ import {
     MinistryAddInput,
     MinistryUpdateInput,
 } from '../../types/generated/graphql';
-import { DatabaseError } from '../../util/error';
+import { DatabaseError, NotFoundError } from '../../util/error';
 import { mapMinistry } from '../../util/mappers';
 import { buildWhereClause, buildSetClause } from '../../util/query';
 import { validateColor, validateRecordName } from '../../util/validation';
@@ -95,11 +95,17 @@ const updateMinistry = async (
     ministryUpdateInput: MinistryUpdateInput,
     clientId: number
 ): Promise<void> => {
+    const { id, name, color } = ministryUpdateInput;
+
+    const [ministry] = await getMinistries(query, [id]);
+
+    if (!ministry) {
+        throw new NotFoundError('Person does not exist');
+    }
+
     if (Object.keys(ministryUpdateInput).length <= 1) {
         throw new UserInputError('Nothing to update');
     }
-
-    const { id, name, color } = ministryUpdateInput;
 
     if (color && !validateColor(color!)) {
         throw new UserInputError('Invalid color');

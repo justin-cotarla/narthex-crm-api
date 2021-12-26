@@ -18,6 +18,7 @@
 		"dbaeumer.vscode-eslint",
 		"shd101wyy.markdown-preview-enhanced",
 		"graphql.vscode-graphql",
+		"firsttris.vscode-jest-runner"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

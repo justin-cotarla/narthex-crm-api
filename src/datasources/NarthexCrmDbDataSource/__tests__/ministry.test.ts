@@ -3,7 +3,7 @@ import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
 import { DBMinistry, DBUpdateResponse } from '../../../types/database';
-import { DatabaseError } from '../../../util/error';
+import { DatabaseError, NotFoundError } from '../../../util/error';
 import * as mappers from '../../../util/mappers';
 import { validateRecordName, validateColor } from '../../../util/validation';
 import {
@@ -321,6 +321,7 @@ describe('ministry', () => {
 
     describe('updateMinistry', () => {
         it('updates a ministry', async () => {
+            mockQuery.mockImplementationOnce((): DBMinistry[] => [{ id: 1 }]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -341,7 +342,7 @@ describe('ministry', () => {
                 2
             );
 
-            expect(mockQuery).toHaveBeenNthCalledWith(1, {
+            expect(mockQuery).toHaveBeenNthCalledWith(2, {
                 sql: sqlFormat(`
                         UPDATE
                             ministry
@@ -357,7 +358,26 @@ describe('ministry', () => {
             expect(mockLogRecordChange).toHaveBeenCalledWith('ministry', 1, 2);
         });
 
+        it('throws an error if no the ministry does not exists', async () => {
+            mockQuery.mockImplementation((): DBMinistry[] => []);
+
+            await expect(
+                updateMinistry(
+                    mockQuery,
+                    mockLogRecordChange,
+                    {
+                        id: 10,
+                    },
+                    2
+                )
+            ).rejects.toThrowError(NotFoundError);
+
+            expect(mockQuery).toHaveBeenCalledTimes(1);
+        });
+
         it('throws an error if no changes are provided', async () => {
+            mockQuery.mockImplementationOnce((): DBMinistry[] => [{ id: 1 }]);
+
             await expect(
                 updateMinistry(
                     mockQuery,
@@ -369,11 +389,12 @@ describe('ministry', () => {
                 )
             ).rejects.toThrowError(UserInputError);
 
-            expect(mockQuery).toHaveBeenCalledTimes(0);
+            expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
         it('throws an error if an invalid color is provided', async () => {
-            mockValidateColor.mockImplementation(() => false);
+            mockQuery.mockImplementationOnce((): DBMinistry[] => [{ id: 1 }]);
+            mockValidateColor.mockImplementationOnce(() => false);
 
             await expect(
                 updateMinistry(
@@ -387,10 +408,11 @@ describe('ministry', () => {
                 )
             ).rejects.toThrowError(UserInputError);
 
-            expect(mockQuery).toHaveBeenCalledTimes(0);
+            expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
         it('throws an error if an invalid name is provided', async () => {
+            mockQuery.mockImplementationOnce((): DBMinistry[] => [{ id: 1 }]);
             mockValidateRecordName.mockImplementation(() => false);
 
             await expect(
@@ -405,11 +427,12 @@ describe('ministry', () => {
                 )
             ).rejects.toThrowError(UserInputError);
 
-            expect(mockQuery).toHaveBeenCalledTimes(0);
+            expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
         it('throws an error if the ministry was not updated on the database', async () => {
-            mockQuery.mockImplementation(
+            mockQuery.mockImplementationOnce((): DBMinistry[] => [{ id: 1 }]);
+            mockQuery.mockImplementationOnce(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
                     changedRows: 0,

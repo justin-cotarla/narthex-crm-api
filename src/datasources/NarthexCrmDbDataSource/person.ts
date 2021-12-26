@@ -21,7 +21,6 @@ import {
 } from '../../util/query';
 import {
     validateBirthDate,
-    validateColor,
     validateEmail,
     validateRecordName,
 } from '../../util/validation';
