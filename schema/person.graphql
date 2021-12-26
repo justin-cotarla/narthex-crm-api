@@ -1,0 +1,42 @@
+type Person implements Record {
+    id: Int!
+    firstName: String
+    lastName: String
+    gender: Gender
+    age: Int
+    phoneNumber: String
+    emailAddress: String
+    birthDate: String
+    title: String
+    createdBy: Client!
+    creationTimestamp: Int
+    modifiedBy: Client!
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+enum Gender {
+    male
+    female
+}
+
+input PersonAddInput {
+    firstName: String!
+    lastName: String!
+    gender: Gender!
+    birthDate: String!
+    phoneNumber: String
+    emailAddress: String
+    title: String
+}
+
+input PersonUpdateInput {
+    id: Int!
+    firstName: String
+    lastName: String
+    gender: Gender
+    birthDate: String
+    phoneNumber: String
+    emailAddress: String
+    title: String
+}

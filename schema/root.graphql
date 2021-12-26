@@ -2,7 +2,10 @@ type Query {
     token(emailAddress: String!, password: String!): String
 
     clients: [Client!]!
-    clientById(clientId: Int!): Client!
+    clientById(clientId: Int!): Client
+
+    people: [Person!]!
+    personById(personId: Int!): Person
 
     ministries(archived: Boolean): [Ministry!]!
     ministryById(ministryId: Int!): Ministry
@@ -11,6 +14,10 @@ type Query {
 type Mutation {
     addClient(clientAddInput: ClientAddInput!): Client!
     updateClient(clientUpdateInput: ClientUpdateInput!): Client!
+
+    addPerson(personAddInput: PersonAddInput!): Person!
+    updatePerson(personUpdateInput: PersonUpdateInput!): Person!
+    deletePerson(personId: Int!): DeleteOutput!
 
     addMinistry(ministryAddInput: MinistryAddInput!): Ministry!
     updateMinistry(ministryUpdateInput: MinistryUpdateInput!): Ministry!
