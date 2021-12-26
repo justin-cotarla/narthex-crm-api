@@ -243,7 +243,7 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
         const values = [...(ministryIds.length !== 0 ? [ministryIds] : [])];
 
-        const rows = await this.query<DBMinistry[]>({
+        const rows = await this.cacheQuery<DBMinistry[]>({
             sql,
             values,
         });

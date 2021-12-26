@@ -11,7 +11,7 @@ import { DatabaseError, DuplicateEntryError } from '../util/error';
 
 class MySqlDataSource extends DataSource {
     protected context?: Context;
-    private cache?: KeyValueCache<string>;
+    private cache?: KeyValueCache<unknown>;
 
     private pool?: Pool;
 
@@ -36,19 +36,23 @@ class MySqlDataSource extends DataSource {
         this.cache = config.cache || new InMemoryLRUCache();
     }
 
+    private logQuery = (options: QueryOptions): void => {
+        this.context?.logger.debug(`SQL Query\n${options.sql}`);
+
+        if (options.values?.length > 0) {
+            this.context?.logger.debug(
+                `SQL Query Values\n[${options.values.join(', ')}]`
+            );
+        }
+    };
+
     protected async query<T>(options: QueryOptions): Promise<T | void> {
         if (!this.pool) {
             throw new Error('Pool not initialized');
         }
 
         try {
-            this.context?.logger.debug(`SQL Query\n${options.sql}`);
-
-            if (options.values?.length > 0) {
-                this.context?.logger.debug(
-                    `SQL Query Values\n[${options.values.join(', ')}`
-                );
-            }
+            this.logQuery(options);
 
             const connection = await promisify(this.pool.getConnection).bind(
                 this.pool
@@ -74,26 +78,31 @@ class MySqlDataSource extends DataSource {
         }
     }
 
-    protected async cacheQuery(options: QueryOptions, ttl = 5) {
+    protected async cacheQuery<T>(
+        options: QueryOptions,
+        ttl = 5
+    ): Promise<T | void> {
         if (!this.cache) {
             throw new Error('Cache not initialized');
         }
 
         const cacheKey = crypto
             .createHash('sha1')
-            .update(options.toString())
+            .update(`${options.sql}${JSON.stringify(options.values)}`)
             .digest('base64');
 
         const entry = await this.cache.get(cacheKey);
 
         if (entry) {
-            return JSON.parse(entry);
+            this.context?.logger.debug(`Cache Hit`);
+            this.logQuery(options);
+            return entry as T;
         }
 
-        const rows = await this.query(options);
+        const rows = await this.query<T>(options);
 
         if (rows) {
-            this.cache.set(cacheKey, JSON.stringify(rows), { ttl });
+            this.cache.set(cacheKey, rows, { ttl });
             return rows;
         }
     }

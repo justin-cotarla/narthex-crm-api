@@ -3,7 +3,7 @@ import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
 import { DBMinistry, DBUpdateResponse } from '../../types/database';
-import { DatabaseError, NotFoundError } from '../../util/error';
+import { DatabaseError } from '../../util/error';
 import * as mappers from '../../util/mappers';
 import { validateRecordName, validateColor } from '../../util/validation';
 import { NarthexCrmDbDataSource } from '../NarthexCrmDbDataSource';
@@ -13,6 +13,7 @@ const mockQuery = jest.fn();
 jest.mock('../MySqlDataSource', () => ({
     MySqlDataSource: jest.fn().mockImplementation(() => ({
         query: mockQuery,
+        cacheQuery: mockQuery,
     })),
 }));
 
