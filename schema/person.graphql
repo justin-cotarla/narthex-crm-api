@@ -40,3 +40,10 @@ input PersonUpdateInput {
     emailAddress: String
     title: String
 }
+
+enum PersonSortKey {
+    ID
+    FIRST_NAME
+    LAST_NAME
+    BIRTH_DATE
+}

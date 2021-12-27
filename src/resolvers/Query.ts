@@ -1,5 +1,16 @@
-import { QueryResolvers } from '../types/generated/graphql';
+import {
+    PaginationOptions,
+    PersonSortKey,
+    QueryResolvers,
+    SortOrder,
+} from '../types/generated/graphql';
 import { authorize } from '../util/auth';
+
+const defaultPaginationOptions: PaginationOptions = {
+    sortOrder: SortOrder.Asc,
+    limit: 10,
+    offset: 0,
+};
 
 const Query: QueryResolvers = {
     token: async (
@@ -76,14 +87,22 @@ const Query: QueryResolvers = {
     },
     people: async (
         _,
-        { archived },
+        {
+            archived,
+            sortKey = PersonSortKey.LastName,
+            paginationOptions = defaultPaginationOptions,
+        },
         { dataSources: { narthexCrmDbDataSource }, clientToken }
     ) => {
         authorize(clientToken, {
             scopes: ['admin'],
         });
 
-        const people = await narthexCrmDbDataSource.getPeople([], archived);
+        const people = await narthexCrmDbDataSource.getPeople([], {
+            sortKey: sortKey!,
+            paginationOptions: paginationOptions!,
+            archived,
+        });
         return people;
     },
 };

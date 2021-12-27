@@ -1,4 +1,5 @@
 import { WhereOperation, WHERE_OPERATIONS } from '../types/database';
+import { PaginationOptions } from '../types/generated/graphql';
 
 const buildSetClause = (
     conditions: { key: string; condition: boolean }[]
@@ -46,4 +47,18 @@ const buildWhereClause = (
     return `${includeWhere ? 'WHERE ' : ''}${whereClauses.join(operation)}`;
 };
 
-export { buildSetClause, buildWhereClause, buildInsertClause };
+const buildPaginationClause = (
+    paginationOptions: PaginationOptions,
+    sortKey: string
+) => {
+    const { limit, offset, sortOrder } = paginationOptions;
+
+    return `order by ${sortKey} ${sortOrder} limit ${limit} offset ${offset}`;
+};
+
+export {
+    buildSetClause,
+    buildWhereClause,
+    buildInsertClause,
+    buildPaginationClause,
+};

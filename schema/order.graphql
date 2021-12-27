@@ -1,3 +1,9 @@
+input PaginationOptions {
+    limit: Int!
+    offset: Int!
+    sortOrder: SortOrder!
+}
+
 enum SortOrder {
     ASC
     DESC

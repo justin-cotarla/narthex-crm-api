@@ -8,8 +8,10 @@ import {
     RecordTable,
 } from '../../types/database';
 import {
+    PaginationOptions,
     Person,
     PersonAddInput,
+    PersonSortKey,
     PersonUpdateInput,
 } from '../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../util/error';
@@ -18,6 +20,7 @@ import {
     buildWhereClause,
     buildSetClause,
     buildInsertClause,
+    buildPaginationClause,
 } from '../../util/query';
 import {
     validateBirthDate,
@@ -52,12 +55,24 @@ const validatePersonProperties = (
 const getPeople = async (
     query: MySqlDataSource['query'],
     personIds: number[],
-    archived?: boolean | null
+    options?: {
+        sortKey: PersonSortKey;
+        paginationOptions: PaginationOptions;
+        archived?: boolean | null;
+    }
 ): Promise<Person[]> => {
+    const { paginationOptions, sortKey, archived } = options ?? {};
+
     const whereClause = buildWhereClause([
         { clause: 'id in (?)', condition: personIds?.length !== 0 },
         { clause: 'archived <> 1', condition: !archived },
     ]);
+
+    const paginationClause =
+        (paginationOptions &&
+            sortKey &&
+            buildPaginationClause(paginationOptions, sortKey.toString())) ||
+        '';
 
     const sql = sqlFormat(`
         SELECT
@@ -77,6 +92,7 @@ const getPeople = async (
         FROM
         person
         ${whereClause}
+        ${paginationClause}
     `);
 
     const values = [...(personIds.length !== 0 ? [personIds] : [])];
