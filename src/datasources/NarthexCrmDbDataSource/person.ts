@@ -29,9 +29,11 @@ import {
 } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
+import * as personModule from './person';
+
 import { NarthexCrmDbDataSource } from './';
 
-const validatePersonProperties = (
+export const _validatePersonProperties = (
     personInput: PersonAddInput | PersonUpdateInput
 ) => {
     const { firstName, lastName, birthDate, emailAddress } = personInput;
@@ -55,11 +57,11 @@ const validatePersonProperties = (
 const getPeople = async (
     query: MySqlDataSource['query'],
     personIds: number[],
-    options?: {
-        sortKey: PersonSortKey;
-        paginationOptions: PaginationOptions;
+    options: {
+        sortKey?: PersonSortKey;
+        paginationOptions?: PaginationOptions;
         archived?: boolean | null;
-    }
+    } = {}
 ): Promise<Person[]> => {
     const { paginationOptions, sortKey, archived } = options ?? {};
 
@@ -120,7 +122,7 @@ const addPerson = async (
         title,
     } = personAddInput;
 
-    validatePersonProperties(personAddInput);
+    personModule._validatePersonProperties(personAddInput);
 
     const insertClause = buildInsertClause([
         { key: 'first_name', condition: true },
@@ -180,7 +182,7 @@ const updatePerson = async (
         title,
     } = personUpdateInput;
 
-    const [person] = await getPeople(query, [id]);
+    const [person] = await personModule.getPeople(query, [id]);
 
     if (!person) {
         throw new NotFoundError('Person does not exist');
@@ -190,7 +192,7 @@ const updatePerson = async (
         throw new UserInputError('Nothing to update');
     }
 
-    validatePersonProperties(personUpdateInput);
+    personModule._validatePersonProperties(personUpdateInput);
 
     const setClause = buildSetClause([
         { key: 'modified_by', condition: true },

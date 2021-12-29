@@ -46,10 +46,10 @@ interface DBPerson extends DBRecord {
     first_name: string;
     last_name: string;
     gender: Gender;
-    primary_phone_number: string;
-    email_address: string;
+    primary_phone_number?: string;
+    email_address?: string;
     birth_date: string;
-    title: string;
+    title?: string;
 }
 
 interface DBInsertResponse {
