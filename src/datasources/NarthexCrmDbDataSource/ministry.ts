@@ -22,9 +22,11 @@ import {
 import { validateColor, validateRecordName } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
+import * as ministryModule from './ministry';
+
 import { NarthexCrmDbDataSource } from './';
 
-const validateMinistryProperties = (
+const _validateMinistryProperties = (
     ministryInput: MinistryAddInput | MinistryUpdateInput
 ) => {
     const { name, color } = ministryInput;
@@ -80,7 +82,7 @@ const addMinistry = async (
 ): Promise<number> => {
     const { name, color = '#B3BFB8' } = ministryAddInput;
 
-    validateMinistryProperties(ministryAddInput);
+    ministryModule._validateMinistryProperties(ministryAddInput);
 
     const insertClause = buildInsertClause([
         { key: 'name', condition: true },
@@ -116,7 +118,7 @@ const updateMinistry = async (
 ): Promise<void> => {
     const { id, name, color } = ministryUpdateInput;
 
-    const [ministry] = await getMinistries(query, [id]);
+    const [ministry] = await ministryModule.getMinistries(query, [id]);
 
     if (!ministry) {
         throw new NotFoundError('Person does not exist');
@@ -126,7 +128,7 @@ const updateMinistry = async (
         throw new UserInputError('Nothing to update');
     }
 
-    validateMinistryProperties(ministryUpdateInput);
+    ministryModule._validateMinistryProperties(ministryUpdateInput);
 
     const setClause = buildSetClause([
         { key: 'name', condition: name !== undefined },
@@ -183,4 +185,10 @@ const archiveMinistry = async (
     await logRecordChange(RecordTable.MINISTRY, ministryId, clientId);
 };
 
-export { getMinistries, addMinistry, updateMinistry, archiveMinistry };
+export {
+    _validateMinistryProperties,
+    getMinistries,
+    addMinistry,
+    updateMinistry,
+    archiveMinistry,
+};

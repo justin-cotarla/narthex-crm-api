@@ -8,6 +8,13 @@ import { DatabaseError, NotFoundError } from '../../../util/error';
 import * as mappersModule from '../../../util/mappers';
 import * as validationModule from '../../../util/validation';
 import * as personModule from '../person';
+import {
+    addPerson,
+    archivePerson,
+    getPeople,
+    updatePerson,
+    _validatePersonProperties,
+} from '../person';
 
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
@@ -56,7 +63,7 @@ describe('person', () => {
                 },
             ]);
 
-            const result = await personModule.getPeople(mockQuery, [], {
+            const result = await getPeople(mockQuery, [], {
                 archived: true,
             });
 
@@ -142,7 +149,7 @@ describe('person', () => {
                 },
             ]);
 
-            const result = await personModule.getPeople(mockQuery, []);
+            const result = await getPeople(mockQuery, []);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -208,7 +215,7 @@ describe('person', () => {
                 },
             ]);
 
-            const result = await personModule.getPeople(mockQuery, [2]);
+            const result = await getPeople(mockQuery, [2]);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -262,7 +269,7 @@ describe('person', () => {
         it('returns an empty array if there are no people', async () => {
             mockQuery.mockImplementation((): DBPerson[] => []);
 
-            const result = await personModule.getPeople(mockQuery, [4]);
+            const result = await getPeople(mockQuery, [4]);
 
             expect(result).toEqual([]);
         });
@@ -286,7 +293,7 @@ describe('person', () => {
                 insertId: 1,
             }));
 
-            const result = await personModule.addPerson(
+            const result = await addPerson(
                 mockQuery,
                 {
                     firstName: 'Jane',
@@ -320,7 +327,7 @@ describe('person', () => {
         it('throws an error if the database fails to insert row', async () => {
             mockQuery.mockImplementation(() => undefined);
             await expect(
-                personModule.addPerson(
+                addPerson(
                     mockQuery,
                     {
                         firstName: 'Jane',
@@ -354,7 +361,7 @@ describe('person', () => {
             spyGetPeople.mockRestore();
         });
         it('updates a person', async () => {
-            spyGetPeople.mockImplementation(() => 'person');
+            spyGetPeople.mockImplementation(() => ['person']);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -362,7 +369,7 @@ describe('person', () => {
                 })
             );
 
-            await personModule.updatePerson(
+            await updatePerson(
                 mockQuery,
                 mockLogRecordChange,
                 {
@@ -397,7 +404,7 @@ describe('person', () => {
             spyGetPeople.mockImplementationOnce((): DBPerson[] => []);
 
             await expect(
-                personModule.updatePerson(
+                updatePerson(
                     mockQuery,
                     mockLogRecordChange,
                     {
@@ -412,10 +419,10 @@ describe('person', () => {
         });
 
         it('throws an error if no changes are provided', async () => {
-            spyGetPeople.mockImplementationOnce(() => 'person');
+            spyGetPeople.mockImplementationOnce(() => ['person']);
 
             await expect(
-                personModule.updatePerson(
+                updatePerson(
                     mockQuery,
                     mockLogRecordChange,
                     {
@@ -429,7 +436,7 @@ describe('person', () => {
         });
 
         it('throws an error if the person was not updated on the database', async () => {
-            spyGetPeople.mockImplementation(() => 'person');
+            spyGetPeople.mockImplementation(() => ['person']);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -438,7 +445,7 @@ describe('person', () => {
             );
 
             await expect(
-                personModule.updatePerson(
+                updatePerson(
                     mockQuery,
                     mockLogRecordChange,
                     {
@@ -460,12 +467,7 @@ describe('person', () => {
                 })
             );
 
-            await personModule.archivePerson(
-                mockQuery,
-                mockLogRecordChange,
-                1,
-                2
-            );
+            await archivePerson(mockQuery, mockLogRecordChange, 1, 2);
 
             expect(mockQuery).toHaveBeenNthCalledWith(1, {
                 sql: sqlFormat(`
@@ -488,7 +490,7 @@ describe('person', () => {
             );
 
             await expect(
-                personModule.archivePerson(mockQuery, mockLogRecordChange, 1, 2)
+                archivePerson(mockQuery, mockLogRecordChange, 1, 2)
             ).rejects.toThrowError(DatabaseError);
         });
     });
@@ -520,7 +522,7 @@ describe('person', () => {
         });
 
         it('accepts valid person properties', () => {
-            personModule._validatePersonProperties({
+            _validatePersonProperties({
                 birthDate: '1995-01-01',
                 emailAddress: 'email@example.com',
                 firstName: 'Jane',
@@ -532,7 +534,7 @@ describe('person', () => {
             spyValidateRecordName.mockImplementation(() => false);
 
             expect(() => {
-                personModule._validatePersonProperties({
+                _validatePersonProperties({
                     birthDate: '1995-01-01',
                     emailAddress: 'email@example.com',
                     firstName: 'J',
@@ -546,7 +548,7 @@ describe('person', () => {
             spyValidateRecordName.mockImplementationOnce(() => false);
 
             expect(() => {
-                personModule._validatePersonProperties({
+                _validatePersonProperties({
                     birthDate: '1995-01-01',
                     emailAddress: 'email@example.com',
                     firstName: 'Jane',
@@ -559,7 +561,7 @@ describe('person', () => {
             spyValidateEmail.mockImplementation(() => false);
 
             expect(() => {
-                personModule._validatePersonProperties({
+                _validatePersonProperties({
                     birthDate: '1995-01-01',
                     emailAddress: 's',
                     firstName: 'Jane',
@@ -572,7 +574,7 @@ describe('person', () => {
             spyValidateBirthDate.mockImplementation(() => false);
 
             expect(() => {
-                personModule._validatePersonProperties({
+                _validatePersonProperties({
                     birthDate: '95-01-01',
                     emailAddress: 'email@example.com',
                     firstName: 'Jane',
