@@ -2,19 +2,33 @@ import { MinistryDelegationResolvers } from '../types/generated/graphql';
 
 const MinistryDelegation: MinistryDelegationResolvers = {
     createdBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
-        return (createdBy && clients.load(createdBy.id)) || null;
+        if (!createdBy) {
+            return null;
+        }
+        const [peopleResult] = await clients.load(createdBy?.id);
+
+        return peopleResult ?? null;
     },
 
     modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
-        return (createdBy && clients.load(createdBy.id)) || null;
+        if (!createdBy) {
+            return null;
+        }
+        const [peopleResult] = await clients.load(createdBy?.id);
+
+        return peopleResult ?? null;
     },
 
     delegee: async ({ delegee }, _, { dataLoaders: { people } }) => {
-        return (delegee && (await people.load(delegee.id))) || null;
+        const [peopleResult] = await people.load(delegee.id);
+
+        return peopleResult;
     },
 
     ministry: async ({ ministry }, _, { dataLoaders: { ministries } }) => {
-        return (ministry && ministries.load(ministry.id)) || null;
+        const [ministryResult] = await ministries.load(ministry.id);
+
+        return ministryResult;
     },
 };
 

@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader';
+import * as R from 'ramda';
 
 import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
 import { MinistryDelegation } from '../types/generated/graphql';
@@ -15,27 +16,13 @@ const getMinistryDelegationsByMinistryLoader = (
                 ministryIds as number[]
             );
 
-        const ministryDelegationIndex = ministryDelegations.map(
-            ({ ministry, ...ministryDelegation }) => ({
-                ministryId: ministry.id,
-                ministryDelegation: { ...ministryDelegation, ministry },
-            })
-        );
-        const ministryDelegationMap = ministryDelegationIndex.reduce<{
-            [id: number]: MinistryDelegation[];
-        }>(
-            (prev, curr) => ({
-                ...prev,
-                [curr.ministryId]: [
-                    ...(prev[curr.ministryId] ? prev[curr.ministryId] : []),
-                    curr.ministryDelegation,
-                ],
-            }),
-            {}
+        const ministryDelegationMap = R.groupBy(
+            ({ ministry: { id } }) => id.toString(),
+            ministryDelegations
         );
 
         return ministryIds.map(
-            (delegeeId) => ministryDelegationMap[delegeeId] ?? undefined
+            (ministryId) => ministryDelegationMap[ministryId] ?? undefined
         );
     };
 
@@ -54,27 +41,14 @@ const getMinistryDelegationsByPersonLoader = (
                 []
             );
 
-        const ministryDelegationIndex = ministryDelegations.map(
-            ({ delegee, ...ministryDelegation }) => ({
-                personId: delegee.id,
-                ministryDelegation: { ...ministryDelegation, delegee },
-            })
-        );
-        const ministryDelegationMap = ministryDelegationIndex.reduce<{
-            [id: number]: MinistryDelegation[];
-        }>(
-            (prev, curr) => ({
-                ...prev,
-                [curr.personId]: [
-                    ...(prev[curr.personId] ? prev[curr.personId] : []),
-                    curr.ministryDelegation,
-                ],
-            }),
-            {}
+        const ministryDelegationMap = R.groupBy(
+            ({ delegee: { id } }) => id.toString(),
+            ministryDelegations
         );
 
         return personIds.map(
-            (delegeeId) => ministryDelegationMap[delegeeId] ?? undefined
+            (delegeeId) =>
+                ministryDelegationMap[delegeeId.toString()] ?? undefined
         );
     };
 

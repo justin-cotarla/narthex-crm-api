@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader';
+import * as R from 'ramda';
 
 import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
 import { Person } from '../types/generated/graphql';
@@ -6,22 +7,12 @@ import { Person } from '../types/generated/graphql';
 const getPersonLoader = (narthexCrmDataSource: NarthexCrmDbDataSource) => {
     const batchPersonById = async (
         personIds: readonly number[]
-    ): Promise<Person[]> => {
+    ): Promise<Person[][]> => {
         const persons = await narthexCrmDataSource.getPeople(
             personIds as number[]
         );
 
-        const personIndex = persons.map(({ id, ...person }) => ({
-            id,
-            person: { ...person, id },
-        }));
-        const personMap = personIndex.reduce<{ [id: number]: Person }>(
-            (prev, curr) => ({
-                ...prev,
-                [curr.id]: curr.person,
-            }),
-            {}
-        );
+        const personMap = R.groupBy(({ id }) => id.toString(), persons);
 
         return personIds.map((personId) => personMap[personId] ?? undefined);
     };
