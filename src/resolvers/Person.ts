@@ -1,18 +1,21 @@
 import { PersonResolvers } from '../types/generated/graphql';
 
 const Person: PersonResolvers = {
-    createdBy: async (
-        { createdBy: { id } },
-        _,
-        { dataLoaders: { clients } }
-    ) => {
-        return clients.load(id);
+    createdBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
+        return (createdBy && clients.load(createdBy.id)) || null;
     },
-    modifiedBy: async (
-        { modifiedBy: { id } },
+
+    modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
+        return (createdBy && clients.load(createdBy.id)) || null;
+    },
+
+    ministryDelegations: async (
+        { id },
         _,
-        { dataLoaders: { clients } }
-    ) => clients.load(id),
+        { dataLoaders: { ministryDelegationsByPerson } }
+    ) => {
+        return (await ministryDelegationsByPerson.load(id)) ?? [];
+    },
 };
 
 export { Person };

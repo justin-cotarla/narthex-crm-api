@@ -1,7 +1,7 @@
 interface Record {
-    createdBy: Client!
+    createdBy: Client
     creationTimestamp: Int
-    modifiedBy: Client!
+    modifiedBy: Client
     modificationTimestamp: Int
     archived: Boolean
 }

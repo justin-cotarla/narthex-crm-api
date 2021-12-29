@@ -8,9 +8,10 @@ type Person implements Record {
     emailAddress: String
     birthDate: String
     title: String
-    createdBy: Client!
+    ministryDelegations: [MinistryDelegation!]
+    createdBy: Client
     creationTimestamp: Int
-    modifiedBy: Client!
+    modifiedBy: Client
     modificationTimestamp: Int
     archived: Boolean
 }

@@ -52,6 +52,11 @@ interface DBPerson extends DBRecord {
     title?: string;
 }
 
+interface DBMinistryDelegation extends DBRecord {
+    ministry_id: number;
+    person_id: number;
+}
+
 interface DBInsertResponse {
     insertId: number;
 }
@@ -71,4 +76,5 @@ export type {
     DBClient,
     DBMinistry,
     DBPerson,
+    DBMinistryDelegation,
 };

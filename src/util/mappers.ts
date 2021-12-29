@@ -1,7 +1,19 @@
 import { differenceInYears, getUnixTime, parse } from 'date-fns';
 
-import { DBClient, DBMinistry, DBPerson, DBRecord } from '../types/database';
-import { Client, Ministry, Person, Record } from '../types/generated/graphql';
+import {
+    DBClient,
+    DBMinistry,
+    DBMinistryDelegation,
+    DBPerson,
+    DBRecord,
+} from '../types/database';
+import {
+    Client,
+    Ministry,
+    MinistryDelegation,
+    Person,
+    Record,
+} from '../types/generated/graphql';
 
 const mapRecord = (dbRecord: DBRecord): Record => ({
     createdBy: {
@@ -53,4 +65,16 @@ const mapPerson = (dbPerson: DBPerson): Person => ({
     ...mapRecord(dbPerson),
 });
 
-export { mapClient, mapMinistry, mapPerson };
+const mapMinistryDelegation = (
+    dbMinistryDelegation: DBMinistryDelegation
+): MinistryDelegation => ({
+    delegee: {
+        id: dbMinistryDelegation.person_id,
+    },
+    ministry: {
+        id: dbMinistryDelegation.ministry_id,
+    },
+    ...mapRecord({ ...dbMinistryDelegation, archived: 0 }),
+});
+
+export { mapClient, mapMinistry, mapPerson, mapMinistryDelegation };

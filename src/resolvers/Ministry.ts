@@ -1,18 +1,21 @@
 import { MinistryResolvers } from '../types/generated/graphql';
 
 const Ministry: MinistryResolvers = {
-    createdBy: async (
-        { createdBy: { id } },
-        _,
-        { dataLoaders: { clients } }
-    ) => {
-        return clients.load(id);
+    createdBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
+        return (createdBy && clients.load(createdBy.id)) || null;
     },
-    modifiedBy: async (
-        { modifiedBy: { id } },
+
+    modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
+        return (createdBy && clients.load(createdBy.id)) || null;
+    },
+
+    delegations: async (
+        { id },
         _,
-        { dataLoaders: { clients } }
-    ) => clients.load(id),
+        { dataLoaders: { ministryDelegationsByMinistry } }
+    ) => {
+        return (await ministryDelegationsByMinistry.load(id)) ?? [];
+    },
 };
 
 export { Ministry };

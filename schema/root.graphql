@@ -22,6 +22,8 @@ type Mutation {
     addMinistry(ministryAddInput: MinistryAddInput!): Ministry!
     updateMinistry(ministryUpdateInput: MinistryUpdateInput!): Ministry!
     deleteMinistry(ministryId: Int!): DeleteOutput!
+    addMinistryDelegation(personId: Int!, ministryId: Int!): MinistryDelegation!
+    removeMinistryDelegation(personId: Int!, ministryId: Int!): MinistryDelegationDeleteOutput!
 }
 
 type DeleteOutput {

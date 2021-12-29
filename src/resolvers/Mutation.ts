@@ -145,6 +145,48 @@ const Mutation: MutationResolvers = {
             id: personId,
         };
     },
+    addMinistryDelegation: async (
+        _,
+        { ministryId, personId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.addPersonToMinsitry(
+            ministryId,
+            personId,
+            clientToken!.id
+        );
+
+        const [ministryDelegation] =
+            await narthexCrmDbDataSource.getMinistryDelegations(
+                [personId],
+                [ministryId]
+            );
+
+        return ministryDelegation;
+    },
+    removeMinistryDelegation: async (
+        _,
+        { ministryId, personId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.removePersonFromMinistry(
+            ministryId,
+            personId
+        );
+
+        return {
+            ministryId,
+            personId,
+        };
+    },
 };
 
 export { Mutation };

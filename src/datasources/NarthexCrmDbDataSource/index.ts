@@ -11,6 +11,11 @@ import {
     getMinistries,
     updateMinistry,
 } from './ministry';
+import {
+    addPersonToMinsitry,
+    getMinistryDelegations,
+    removePersonFromMinistry,
+} from './ministryDelegation';
 import { addPerson, archivePerson, getPeople, updatePerson } from './person';
 
 type Tail<T extends unknown[]> = T extends [unknown, ...infer U] ? U : never;
@@ -100,6 +105,18 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             this.logRecordChange.bind(this),
             ...args
         );
+
+    addPersonToMinsitry = (
+        ...args: Tail<Parameters<typeof addPersonToMinsitry>>
+    ) => addPersonToMinsitry(this.query.bind(this), ...args);
+
+    getMinistryDelegations = (
+        ...args: Tail<Parameters<typeof getMinistryDelegations>>
+    ) => getMinistryDelegations(this.query.bind(this), ...args);
+
+    removePersonFromMinistry = (
+        ...args: Tail<Parameters<typeof removePersonFromMinistry>>
+    ) => removePersonFromMinistry(this.query.bind(this), ...args);
 
     getPeople = (...args: Tail<Parameters<typeof getPeople>>) =>
         getPeople(this.cacheQuery.bind(this), ...args);

@@ -1,0 +1,14 @@
+type MinistryDelegation implements Record {
+    ministry: Ministry!
+    delegee: Person!
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+type MinistryDelegationDeleteOutput {
+    ministryId: Int!
+    personId: Int!
+}
