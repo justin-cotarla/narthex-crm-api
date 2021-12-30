@@ -4,6 +4,9 @@ type Query {
     clients: [Client!]!
     clientById(clientId: Int!): Client
 
+    households(paginationOptions: PaginationOptions, sortKey: HouseholdSortKey, archived: Boolean): [Household!]!
+    householdById(householdId: Int!): Household
+
     people(paginationOptions: PaginationOptions, sortKey: PersonSortKey, archived: Boolean): [Person!]!
     personById(personId: Int!): Person
 
@@ -14,6 +17,10 @@ type Query {
 type Mutation {
     addClient(clientAddInput: ClientAddInput!): Client!
     updateClient(clientUpdateInput: ClientUpdateInput!): Client!
+
+    addHousehold(householdAddInput: HouseholdAddInput!): Household!
+    updateHousehold(householdUpdateInput: HouseholdUpdateInput!): Household!
+    deleteHousehold(householdId: Int!): DeleteOutput!
 
     addPerson(personAddInput: PersonAddInput!): Person!
     updatePerson(personUpdateInput: PersonUpdateInput!): Person!

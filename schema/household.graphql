@@ -1,0 +1,39 @@
+type Household implements Record {
+    id: Int!
+    head: Person
+    name: String!
+    address: Address!
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+type Address {
+    line1: String!
+    line2: String
+    city: String!
+    state: String!
+    postalCode: String!
+    country: String!
+}
+
+input HouseholdAddInput {
+    headId: Int
+    name: String!
+    address: Address!
+}
+
+input HouseholdUpdateInput {
+    id: Int!
+    headId: Int
+    name: String
+    address: Address
+}
+
+enum HouseholdSortKey {
+    ID
+    NAME
+    COUNTRY
+}
