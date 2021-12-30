@@ -31,6 +31,7 @@ const logError = (error: GraphQLError, logger: Logger) => {
     switch (error.extensions.code) {
         case 'DUPLICATE_ENTRY':
         case 'RESOURCE_NOT_FOUND':
+        case 'BAD_USER_INPUT':
         case 'FORBIDDEN':
             logger.warn(`${error.name} - ${error.message}`);
             break;

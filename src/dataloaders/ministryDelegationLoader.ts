@@ -12,8 +12,8 @@ const getMinistryDelegationsByMinistryLoader = (
     ): Promise<MinistryDelegation[][]> => {
         const ministryDelegations =
             await narthexCrmDataSource.getMinistryDelegations(
-                [],
-                ministryIds as number[]
+                ministryIds as number[],
+                []
             );
 
         const ministryDelegationMap = R.groupBy(
@@ -37,8 +37,8 @@ const getMinistryDelegationsByPersonLoader = (
     ): Promise<MinistryDelegation[][]> => {
         const ministryDelegations =
             await narthexCrmDataSource.getMinistryDelegations(
-                personIds as number[],
-                []
+                [],
+                personIds as number[]
             );
 
         const ministryDelegationMap = R.groupBy(

@@ -190,7 +190,8 @@ describe('ministry', () => {
                         ministry
                     WHERE
                         id in (?)
-                        and archived <> 1`),
+                        and archived <> 1
+                `),
                 values: [[1]],
             });
             expect(spyMapMinistry).toHaveBeenCalled();
@@ -212,7 +213,7 @@ describe('ministry', () => {
             ]);
         });
 
-        it('returns an empty array if there are not ministries', async () => {
+        it('returns an empty array if there are no ministries', async () => {
             mockQuery.mockImplementation((): DBMinistry[] => []);
 
             const result = await getMinistries(mockQuery, [4]);

@@ -1,20 +1,20 @@
+import { UserInputError } from 'apollo-server';
 import { format as sqlFormat } from 'sql-formatter';
 
-import {
-    DBInsertResponse,
-    DBMinistryDelegation,
-    DBUpdateResponse,
-} from '../../types/database';
+import { DBMinistryDelegation, DBUpdateResponse } from '../../types/database';
 import { MinistryDelegation } from '../../types/generated/graphql';
 import { DatabaseError } from '../../util/error';
 import { mapMinistryDelegation } from '../../util/mappers';
 import { buildInsertClause, buildWhereClause } from '../../util/query';
 import { MySqlDataSource } from '../MySqlDataSource';
 
+import * as ministryModule from './ministry';
+import * as personModule from './person';
+
 const getMinistryDelegations = async (
     query: MySqlDataSource['query'],
-    personIds: number[],
-    ministryIds: number[]
+    ministryIds: number[],
+    personIds: number[]
 ): Promise<MinistryDelegation[]> => {
     const whereClause = buildWhereClause([
         { clause: 'person_id in (?)', condition: personIds?.length !== 0 },
@@ -53,6 +53,17 @@ const addPersonToMinsitry = async (
     personId: number,
     clientId: number
 ): Promise<void> => {
+    const [person] = await personModule.getPeople(query, [personId]);
+    const [ministry] = await ministryModule.getMinistries(query, [ministryId]);
+
+    if (!person || person.archived) {
+        throw new UserInputError('Person does not exist or is archived');
+    }
+
+    if (!ministry || ministry.archived) {
+        throw new UserInputError('Ministry does not exist or is archived');
+    }
+
     const insertClause = buildInsertClause([
         { key: 'ministry_id', condition: true },
         { key: 'person_id', condition: true },
@@ -67,13 +78,13 @@ const addPersonToMinsitry = async (
             ${insertClause.values}
     `);
 
-    const rows = await query<DBInsertResponse>({
+    const rows = await query<DBUpdateResponse>({
         sql,
         values: [ministryId, personId, clientId, clientId],
     });
 
-    if (!rows) {
-        throw new Error('Could not add person to ministry');
+    if (!rows || rows.affectedRows === 0) {
+        throw new DatabaseError('Could not add person to ministry');
     }
 };
 

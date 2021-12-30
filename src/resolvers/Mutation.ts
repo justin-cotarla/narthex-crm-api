@@ -162,8 +162,8 @@ const Mutation: MutationResolvers = {
 
         const [ministryDelegation] =
             await narthexCrmDbDataSource.getMinistryDelegations(
-                [personId],
-                [ministryId]
+                [ministryId],
+                [personId]
             );
 
         return ministryDelegation;
