@@ -105,6 +105,19 @@ const Query: QueryResolvers = {
         });
         return people;
     },
+    personById: async (
+        _,
+        { personId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const [person] = await narthexCrmDbDataSource.getPeople([personId]);
+
+        return person;
+    },
 };
 
 export { Query };
