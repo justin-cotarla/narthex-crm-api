@@ -19,17 +19,26 @@ type Address {
     country: String!
 }
 
+input AddressInput {
+    line1: String!
+    line2: String
+    city: String!
+    state: String!
+    postalCode: String!
+    country: String!
+}
+
 input HouseholdAddInput {
     headId: Int
     name: String!
-    address: Address!
+    address: AddressInput!
 }
 
 input HouseholdUpdateInput {
     id: Int!
     headId: Int
     name: String
-    address: Address
+    address: AddressInput
 }
 
 enum HouseholdSortKey {

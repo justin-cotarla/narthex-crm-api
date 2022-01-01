@@ -187,6 +187,62 @@ const Mutation: MutationResolvers = {
             personId,
         };
     },
+    addHousehold: async (
+        _,
+        { householdAddInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const householdId = await narthexCrmDbDataSource.addHousehold(
+            householdAddInput,
+            clientToken!.id
+        );
+
+        const [household] = await narthexCrmDbDataSource.getHouseholds([
+            householdId,
+        ]);
+        return household;
+    },
+    updateHousehold: async (
+        _,
+        { householdUpdateInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.updateHousehold(
+            householdUpdateInput,
+            clientToken!.id
+        );
+        const [household] = await narthexCrmDbDataSource.getHouseholds([
+            householdUpdateInput.id,
+        ]);
+
+        return household;
+    },
+    deleteHousehold: async (
+        _,
+        { householdId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.archiveHousehold(
+            householdId,
+            clientToken!.id
+        );
+
+        return {
+            id: householdId,
+        };
+    },
 };
 
 export { Mutation };

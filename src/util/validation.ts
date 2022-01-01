@@ -1,3 +1,5 @@
+import { AddressInput } from '../types/generated/graphql';
+
 const validateEmail = (email: string): boolean => {
     const emailRegex = /\S+@\S+\.\S+/;
     return emailRegex.test(email);
@@ -17,4 +19,15 @@ const validateBirthDate = (birthDateString: string): boolean => {
     return birthDateRegex.test(birthDateString);
 };
 
-export { validateEmail, validateColor, validateRecordName, validateBirthDate };
+const validateAddress = (address: AddressInput): boolean => {
+    // TODO: Implement validation function
+    return true;
+};
+
+export {
+    validateEmail,
+    validateColor,
+    validateRecordName,
+    validateBirthDate,
+    validateAddress,
+};

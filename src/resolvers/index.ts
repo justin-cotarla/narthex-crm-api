@@ -1,5 +1,6 @@
 import { Resolvers } from '../types/generated/graphql';
 
+import { Household } from './Household';
 import { Ministry } from './Ministry';
 import { MinistryDelegation } from './MinistryDelegation';
 import { Mutation } from './Mutation';
@@ -10,6 +11,7 @@ const resolvers: Resolvers = {
     Query,
     Mutation,
     Ministry,
+    Household,
     Person,
     MinistryDelegation,
 };

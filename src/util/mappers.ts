@@ -2,6 +2,7 @@ import { differenceInYears, getUnixTime, parse } from 'date-fns';
 
 import {
     DBClient,
+    DBHousehold,
     DBMinistry,
     DBMinistryDelegation,
     DBPerson,
@@ -9,6 +10,7 @@ import {
 } from '../types/database';
 import {
     Client,
+    Household,
     Ministry,
     MinistryDelegation,
     Person,
@@ -49,6 +51,27 @@ const mapMinistry = (dbMinistry: DBMinistry): Ministry => ({
     ...mapRecord(dbMinistry),
 });
 
+const mapHousehold = (dbHousehold: DBHousehold): Household => ({
+    id: dbHousehold.id,
+    name: dbHousehold.name,
+    ...(dbHousehold.head_id
+        ? {
+              head: {
+                  id: dbHousehold.head_id,
+              },
+          }
+        : {}),
+    address: {
+        line1: dbHousehold.address_line_1,
+        line2: dbHousehold.address_line_2,
+        city: dbHousehold.city,
+        state: dbHousehold.state,
+        postalCode: dbHousehold.postal_code,
+        country: dbHousehold.country,
+    },
+    ...mapRecord(dbHousehold),
+});
+
 const mapPerson = (dbPerson: DBPerson): Person => ({
     id: dbPerson.id,
     firstName: dbPerson.first_name,
@@ -77,4 +100,10 @@ const mapMinistryDelegation = (
     ...mapRecord({ ...dbMinistryDelegation, archived: 0 }),
 });
 
-export { mapClient, mapMinistry, mapPerson, mapMinistryDelegation };
+export {
+    mapClient,
+    mapMinistry,
+    mapHousehold,
+    mapPerson,
+    mapMinistryDelegation,
+};

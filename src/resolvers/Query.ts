@@ -1,4 +1,5 @@
 import {
+    HouseholdSortKey,
     PaginationOptions,
     PersonSortKey,
     QueryResolvers,
@@ -29,6 +30,7 @@ const Query: QueryResolvers = {
         );
         return token;
     },
+
     clientById: async (
         _,
         { clientId },
@@ -42,6 +44,7 @@ const Query: QueryResolvers = {
         const [client] = await narthexCrmDbDataSource.getClients([clientId]);
         return client;
     },
+
     clients: async (
         _,
         __,
@@ -54,6 +57,7 @@ const Query: QueryResolvers = {
         const clients = await narthexCrmDbDataSource.getClients([]);
         return clients;
     },
+
     ministries: async (
         _,
         { archived },
@@ -70,6 +74,7 @@ const Query: QueryResolvers = {
 
         return ministries;
     },
+
     ministryById: async (
         _,
         { ministryId },
@@ -85,6 +90,7 @@ const Query: QueryResolvers = {
 
         return ministry;
     },
+
     people: async (
         _,
         {
@@ -105,6 +111,7 @@ const Query: QueryResolvers = {
         });
         return people;
     },
+
     personById: async (
         _,
         { personId },
@@ -117,6 +124,43 @@ const Query: QueryResolvers = {
         const [person] = await narthexCrmDbDataSource.getPeople([personId]);
 
         return person;
+    },
+
+    households: async (
+        _,
+        {
+            archived,
+            sortKey = HouseholdSortKey.Name,
+            paginationOptions = defaultPaginationOptions,
+        },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const households = await narthexCrmDbDataSource.getHouseholds([], {
+            sortKey: sortKey!,
+            paginationOptions: paginationOptions!,
+            archived,
+        });
+        return households;
+    },
+
+    householdById: async (
+        _,
+        { householdId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const [household] = await narthexCrmDbDataSource.getHouseholds([
+            householdId,
+        ]);
+
+        return household;
     },
 };
 

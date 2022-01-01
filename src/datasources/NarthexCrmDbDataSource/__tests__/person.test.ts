@@ -1,4 +1,5 @@
 import { UserInputError } from 'apollo-server';
+import { differenceInYears, parse } from 'date-fns';
 import { SpyInstance, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
@@ -91,7 +92,10 @@ describe('person', () => {
             expect(spyMapPerson).toHaveBeenCalled();
             expect(result).toStrictEqual([
                 {
-                    age: 26,
+                    age: differenceInYears(
+                        new Date(),
+                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
+                    ),
                     archived: false,
                     birthDate: '1995-01-01',
                     createdBy: {
@@ -111,7 +115,10 @@ describe('person', () => {
                     title: 'Mr',
                 },
                 {
-                    age: 26,
+                    age: differenceInYears(
+                        new Date(),
+                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
+                    ),
                     archived: false,
                     birthDate: '1995-01-01',
                     createdBy: {
@@ -177,7 +184,10 @@ describe('person', () => {
             expect(spyMapPerson).toHaveBeenCalled();
             expect(result).toStrictEqual([
                 {
-                    age: 26,
+                    age: differenceInYears(
+                        new Date(),
+                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
+                    ),
                     archived: false,
                     birthDate: '1995-01-01',
                     createdBy: {
@@ -244,7 +254,10 @@ describe('person', () => {
             expect(spyMapPerson).toHaveBeenCalled();
             expect(result).toStrictEqual([
                 {
-                    age: 26,
+                    age: differenceInYears(
+                        new Date(),
+                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
+                    ),
                     archived: false,
                     birthDate: '1995-01-01',
                     createdBy: {

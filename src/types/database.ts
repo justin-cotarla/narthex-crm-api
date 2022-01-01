@@ -14,6 +14,7 @@ enum MySqlErrorCode {
 enum RecordTable {
     MINISTRY = 'ministry',
     PERSON = 'person',
+    HOUSEHOLD = 'household',
 }
 
 interface DBRecord {
@@ -38,6 +39,18 @@ interface DBMinistry extends DBRecord {
     id: number;
     name?: string;
     color?: number;
+}
+
+interface DBHousehold extends DBRecord {
+    id: number;
+    head_id?: number;
+    name: string;
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
 }
 
 interface DBPerson extends DBRecord {
@@ -75,6 +88,7 @@ export type {
     DBRecord,
     DBClient,
     DBMinistry,
+    DBHousehold,
     DBPerson,
     DBMinistryDelegation,
 };

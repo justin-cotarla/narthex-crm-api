@@ -6,6 +6,12 @@ import { MySqlDataSource } from '../MySqlDataSource';
 
 import { addClient, getClients, getToken, updateClient } from './client';
 import {
+    getHouseholds,
+    addHousehold,
+    updateHousehold,
+    archiveHousehold,
+} from './household';
+import {
     addMinistry,
     archiveMinistry,
     getMinistries,
@@ -133,6 +139,30 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
 
     archivePerson = (...args: Tail<Tail<Parameters<typeof archivePerson>>>) =>
         archivePerson(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    getHouseholds = (...args: Tail<Parameters<typeof getHouseholds>>) =>
+        getHouseholds(this.cacheQuery.bind(this), ...args);
+
+    addHousehold = (...args: Tail<Parameters<typeof addHousehold>>) =>
+        addHousehold(this.query.bind(this), ...args);
+
+    updateHousehold = (
+        ...args: Tail<Tail<Parameters<typeof updateHousehold>>>
+    ) =>
+        updateHousehold(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    archiveHousehold = (
+        ...args: Tail<Tail<Parameters<typeof archiveHousehold>>>
+    ) =>
+        archiveHousehold(
             this.query.bind(this),
             this.logRecordChange.bind(this),
             ...args

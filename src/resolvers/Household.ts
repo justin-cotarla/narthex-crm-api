@@ -1,6 +1,6 @@
-import { MinistryResolvers } from '../types/generated/graphql';
+import { HouseholdResolvers } from '../types/generated/graphql';
 
-const Ministry: MinistryResolvers = {
+const Household: HouseholdResolvers = {
     createdBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
         if (!createdBy) {
             return null;
@@ -18,14 +18,6 @@ const Ministry: MinistryResolvers = {
 
         return clientResult ?? null;
     },
-
-    delegations: async (
-        { id },
-        _,
-        { dataLoaders: { ministryDelegationsByMinistry } }
-    ) => {
-        return (await ministryDelegationsByMinistry.load(id)) ?? [];
-    },
 };
 
-export { Ministry };
+export { Household };
