@@ -189,7 +189,7 @@ const updateHousehold = async (
 
     const values = [
         clientId,
-        name,
+        ...(name !== undefined ? [name] : []),
         ...(headId !== undefined ? [headId] : []),
         ...(address?.line1 !== undefined ? [address.line1] : []),
         ...(address?.line2 !== undefined ? [address.line2] : []),
@@ -197,8 +197,6 @@ const updateHousehold = async (
         ...(address?.state !== undefined ? [address.state] : []),
         ...(address?.postalCode !== undefined ? [address.postalCode] : []),
         ...(address?.country !== undefined ? [address.country] : []),
-        clientId,
-        clientId,
         id,
     ];
 

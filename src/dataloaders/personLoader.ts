@@ -20,4 +20,27 @@ const getPersonLoader = (narthexCrmDataSource: NarthexCrmDbDataSource) => {
     return new DataLoader(batchPersonById);
 };
 
-export { getPersonLoader };
+const getPeopleByHouseholdLoader = (
+    narthexCrmDataSource: NarthexCrmDbDataSource
+) => {
+    const batchPeopleByHouseholdId = async (
+        householdIds: readonly number[]
+    ): Promise<Person[][]> => {
+        const persons = await narthexCrmDataSource.getPeople([], {
+            householdIds: householdIds as number[],
+        });
+
+        const personMap = R.groupBy(
+            ({ household }) => household!.id.toString(),
+            persons
+        );
+
+        return householdIds.map(
+            (householdId) => personMap[householdId] ?? undefined
+        );
+    };
+
+    return new DataLoader(batchPeopleByHouseholdId);
+};
+
+export { getPersonLoader, getPeopleByHouseholdLoader };

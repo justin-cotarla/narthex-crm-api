@@ -1,5 +1,6 @@
 type Person implements Record {
     id: Int!
+    household: Household
     firstName: String
     lastName: String
     gender: Gender
@@ -26,6 +27,7 @@ input PersonAddInput {
     lastName: String!
     gender: Gender!
     birthDate: String!
+    householdId: Int!
     phoneNumber: String
     emailAddress: String
     title: String
@@ -37,6 +39,7 @@ input PersonUpdateInput {
     lastName: String
     gender: Gender
     birthDate: String
+    householdId: Int
     phoneNumber: String
     emailAddress: String
     title: String

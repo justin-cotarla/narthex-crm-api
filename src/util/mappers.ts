@@ -77,6 +77,9 @@ const mapPerson = (dbPerson: DBPerson): Person => ({
     firstName: dbPerson.first_name,
     lastName: dbPerson.last_name,
     gender: dbPerson.gender,
+    household: {
+        id: dbPerson.household_id,
+    },
     phoneNumber: dbPerson.primary_phone_number,
     emailAddress: dbPerson.email_address,
     birthDate: dbPerson.birth_date,

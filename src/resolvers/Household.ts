@@ -18,6 +18,21 @@ const Household: HouseholdResolvers = {
 
         return clientResult ?? null;
     },
+
+    head: async ({ head }, _, { dataLoaders: { people } }) => {
+        if (!head?.id) {
+            return null;
+        }
+        const [personResult] = await people.load(head.id);
+
+        return personResult ?? null;
+    },
+
+    members: async ({ id }, _, { dataLoaders: { peopleByHousehold } }) => {
+        const personResult = await peopleByHousehold.load(id);
+
+        return personResult ?? null;
+    },
 };
 
 export { Household };

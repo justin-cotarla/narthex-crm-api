@@ -1,6 +1,6 @@
 import { UserInputError } from 'apollo-server';
 import { differenceInYears, parse } from 'date-fns';
-import { SpyInstance, spyOn } from 'jest-mock';
+import { mocked, SpyInstance, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
 import { DBPerson, DBUpdateResponse } from '../../../types/database';
@@ -8,6 +8,7 @@ import { Gender, PersonAddInput } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
 import * as mappersModule from '../../../util/mappers';
 import * as validationModule from '../../../util/validation';
+import { getHouseholds } from '../household';
 import * as personModule from '../person';
 import {
     addPerson,
@@ -22,9 +23,13 @@ const mockLogRecordChange = jest.fn();
 
 const spyMapPerson = spyOn(mappersModule, 'mapPerson');
 
+jest.mock('../household');
+const mockGetHouseholds = mocked(getHouseholds);
+
 beforeEach(() => {
     mockQuery.mockClear();
     mockLogRecordChange.mockClear();
+    mockGetHouseholds.mockClear();
 });
 
 describe('person', () => {
@@ -40,6 +45,7 @@ describe('person', () => {
                     first_name: 'John',
                     last_name: 'Doe',
                     gender: Gender.Male,
+                    household_id: 1,
                     primary_phone_number: '(514) 123-4567',
                     title: 'Mr',
                     birth_date: '1995-01-01',
@@ -55,6 +61,7 @@ describe('person', () => {
                     first_name: 'Jane',
                     last_name: 'Poe',
                     gender: Gender.Female,
+                    household_id: 1,
                     birth_date: '1995-01-01',
                     created_by: 1,
                     creation_timestamp: new Date('2021/12/19'),
@@ -83,7 +90,8 @@ describe('person', () => {
                         creation_timestamp,
                         modified_by,
                         modification_timestamp,
-                        archived
+                        archived,
+                        household_id
                     FROM
                         person
                 `),
@@ -105,6 +113,9 @@ describe('person', () => {
                     emailAddress: 'email@test.com',
                     firstName: 'John',
                     gender: 'male',
+                    household: {
+                        id: 1,
+                    },
                     id: 1,
                     lastName: 'Doe',
                     modificationTimestamp: 1639872000,
@@ -128,6 +139,9 @@ describe('person', () => {
                     emailAddress: undefined,
                     firstName: 'Jane',
                     gender: 'female',
+                    household: {
+                        id: 1,
+                    },
                     id: 2,
                     lastName: 'Poe',
                     modificationTimestamp: 1639872000,
@@ -147,6 +161,7 @@ describe('person', () => {
                     first_name: 'Jane',
                     last_name: 'Poe',
                     gender: Gender.Female,
+                    household_id: 1,
                     birth_date: '1995-01-01',
                     created_by: 1,
                     creation_timestamp: new Date('2021/12/19'),
@@ -173,7 +188,8 @@ describe('person', () => {
                         creation_timestamp,
                         modified_by,
                         modification_timestamp,
-                        archived
+                        archived,
+                        household_id
                     FROM
                         person
                     WHERE
@@ -197,6 +213,9 @@ describe('person', () => {
                     emailAddress: undefined,
                     firstName: 'Jane',
                     gender: 'female',
+                    household: {
+                        id: 1,
+                    },
                     id: 2,
                     lastName: 'Poe',
                     modificationTimestamp: 1639872000,
@@ -216,6 +235,7 @@ describe('person', () => {
                     first_name: 'Jane',
                     last_name: 'Poe',
                     gender: Gender.Female,
+                    household_id: 1,
                     birth_date: '1995-01-01',
                     created_by: 1,
                     creation_timestamp: new Date('2021/12/19'),
@@ -242,7 +262,8 @@ describe('person', () => {
                         creation_timestamp,
                         modified_by,
                         modification_timestamp,
-                        archived
+                        archived,
+                        household_id
                     FROM
                         person
                     WHERE
@@ -267,6 +288,9 @@ describe('person', () => {
                     emailAddress: undefined,
                     firstName: 'Jane',
                     gender: 'female',
+                    household: {
+                        id: 1,
+                    },
                     id: 2,
                     lastName: 'Poe',
                     modificationTimestamp: 1639872000,
@@ -306,18 +330,26 @@ describe('person', () => {
                 insertId: 1,
             }));
 
+            mockGetHouseholds.mockImplementation(async () => [
+                {
+                    id: 1,
+                },
+            ]);
+
             const result = await addPerson(
                 mockQuery,
                 {
                     firstName: 'Jane',
                     lastName: 'Poe',
                     gender: Gender.Female,
+                    householdId: 1,
                     birthDate: '1995-01-01',
                 },
                 1
             );
 
             expect(spyValidatePersonProperties).toBeCalled();
+            expect(mockGetHouseholds).toBeCalled();
             expect(result).toBe(1);
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -328,12 +360,13 @@ describe('person', () => {
                             gender,
                             birth_date,
                             created_by,
-                            modified_by
+                            modified_by,
+                            household_id
                         )
                     VALUES
-                        (?, ?, ?, ?, ?, ?)
+                        (?, ?, ?, ?, ?, ?, ?)
                 `),
-                values: ['Jane', 'Poe', 'female', '1995-01-01', 1, 1],
+                values: ['Jane', 'Poe', 'female', '1995-01-01', 1, 1, 1],
             });
         });
 
@@ -346,6 +379,7 @@ describe('person', () => {
                         firstName: 'Jane',
                         lastName: 'Poe',
                         gender: Gender.Female,
+                        householdId: 1,
                         birthDate: '19-01-01',
                     },
                     1

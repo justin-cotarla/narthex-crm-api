@@ -1,8 +1,9 @@
 type Household implements Record {
     id: Int!
     head: Person
-    name: String!
-    address: Address!
+    members: [Person!]
+    name: String
+    address: Address
     createdBy: Client
     creationTimestamp: Int
     modifiedBy: Client

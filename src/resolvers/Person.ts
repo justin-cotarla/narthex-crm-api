@@ -26,6 +26,15 @@ const Person: PersonResolvers = {
     ) => {
         return (await ministryDelegationsByPerson.load(id)) ?? [];
     },
+
+    household: async ({ household }, _, { dataLoaders: { households } }) => {
+        if (!household?.id) {
+            return null;
+        }
+        const [householdResult] = await households.load(household.id);
+
+        return householdResult ?? null;
+    },
 };
 
 export { Person };

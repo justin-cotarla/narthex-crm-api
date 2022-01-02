@@ -29,6 +29,7 @@ import {
 } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
+import * as householdModule from './household';
 import * as personModule from './person';
 
 import { NarthexCrmDbDataSource } from './';
@@ -61,12 +62,18 @@ const getPeople = async (
         sortKey?: PersonSortKey;
         paginationOptions?: PaginationOptions;
         archived?: boolean | null;
+        householdIds?: number[];
     } = {}
 ): Promise<Person[]> => {
-    const { paginationOptions, sortKey, archived } = options ?? {};
+    const { paginationOptions, sortKey, archived, householdIds } =
+        options ?? {};
 
     const whereClause = buildWhereClause([
         { clause: 'id in (?)', condition: personIds?.length !== 0 },
+        {
+            clause: 'household_id in (?)',
+            condition: (householdIds?.length ?? 0) !== 0,
+        },
         { clause: 'archived <> 1', condition: !archived },
     ]);
 
@@ -90,14 +97,18 @@ const getPeople = async (
             creation_timestamp,
             modified_by,
             modification_timestamp,
-            archived
+            archived,
+            household_id
         FROM
         person
         ${whereClause}
         ${paginationClause}
     `);
 
-    const values = [...(personIds.length !== 0 ? [personIds] : [])];
+    const values = [
+        ...(personIds.length !== 0 ? [personIds] : []),
+        ...((householdIds?.length ?? 0) !== 0 ? [householdIds] : []),
+    ];
 
     const rows = await query<DBPerson[]>({
         sql,
@@ -115,6 +126,7 @@ const addPerson = async (
     const {
         firstName,
         lastName,
+        householdId,
         birthDate,
         gender,
         emailAddress,
@@ -124,6 +136,15 @@ const addPerson = async (
 
     personModule._validatePersonProperties(personAddInput);
 
+    if (householdId) {
+        const [household] = await householdModule.getHouseholds(query, [
+            householdId,
+        ]);
+        if (!household) {
+            throw new UserInputError('Household does not exist');
+        }
+    }
+
     const insertClause = buildInsertClause([
         { key: 'first_name', condition: true },
         { key: 'last_name', condition: true },
@@ -131,6 +152,7 @@ const addPerson = async (
         { key: 'birth_date', condition: true },
         { key: 'created_by', condition: true },
         { key: 'modified_by', condition: true },
+        { key: 'household_id', condition: householdId !== undefined },
         { key: 'primary_phone_number', condition: phoneNumber !== undefined },
         { key: 'email_address', condition: emailAddress !== undefined },
         { key: 'title', condition: title !== undefined },
@@ -152,6 +174,7 @@ const addPerson = async (
             birthDate,
             clientId,
             clientId,
+            ...(householdId !== undefined ? [householdId] : []),
             ...(phoneNumber !== undefined ? [phoneNumber] : []),
             ...(emailAddress !== undefined ? [emailAddress] : []),
             ...(title !== undefined ? [title] : []),
@@ -173,6 +196,7 @@ const updatePerson = async (
 ): Promise<void> => {
     const {
         id,
+        householdId,
         firstName,
         lastName,
         birthDate,
@@ -194,10 +218,20 @@ const updatePerson = async (
 
     personModule._validatePersonProperties(personUpdateInput);
 
+    if (householdId) {
+        const [household] = await householdModule.getHouseholds(query, [
+            householdId,
+        ]);
+        if (!household) {
+            throw new UserInputError('Household does not exist');
+        }
+    }
+
     const setClause = buildSetClause([
         { key: 'modified_by', condition: true },
         { key: 'first_name', condition: firstName !== undefined },
         { key: 'last_name', condition: lastName !== undefined },
+        { key: 'householdId', condition: householdId !== undefined },
         { key: 'gender', condition: gender !== undefined },
         { key: 'birth_date', condition: birthDate !== undefined },
         { key: 'primary_phone_number', condition: phoneNumber !== undefined },
@@ -216,6 +250,7 @@ const updatePerson = async (
         clientId,
         ...(firstName !== undefined ? [firstName] : []),
         ...(lastName !== undefined ? [lastName] : []),
+        ...(householdId !== undefined ? [householdId] : []),
         ...(gender !== undefined ? [gender] : []),
         ...(birthDate !== undefined ? [birthDate] : []),
         ...(phoneNumber !== undefined ? [phoneNumber] : []),

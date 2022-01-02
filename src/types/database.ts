@@ -55,7 +55,7 @@ interface DBHousehold extends DBRecord {
 
 interface DBPerson extends DBRecord {
     id: number;
-    // household_id: ;
+    household_id: number;
     first_name: string;
     last_name: string;
     gender: Gender;
