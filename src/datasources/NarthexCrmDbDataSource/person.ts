@@ -225,13 +225,17 @@ const updatePerson = async (
         if (!household) {
             throw new UserInputError('Household does not exist');
         }
+
+        if (household.head?.id !== id) {
+            await householdModule.clearHouseholdHead(query, id);
+        }
     }
 
     const setClause = buildSetClause([
         { key: 'modified_by', condition: true },
         { key: 'first_name', condition: firstName !== undefined },
         { key: 'last_name', condition: lastName !== undefined },
-        { key: 'householdId', condition: householdId !== undefined },
+        { key: 'household_id', condition: householdId !== undefined },
         { key: 'gender', condition: gender !== undefined },
         { key: 'birth_date', condition: birthDate !== undefined },
         { key: 'primary_phone_number', condition: phoneNumber !== undefined },
@@ -277,6 +281,8 @@ const archivePerson = async (
     personId: number,
     clientId: number
 ): Promise<void> => {
+    await householdModule.clearHouseholdHead(query, personId);
+
     const sql = sqlFormat(`
         UPDATE person
         SET

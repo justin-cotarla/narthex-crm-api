@@ -30,7 +30,7 @@ import * as personModule from './person';
 
 import { NarthexCrmDbDataSource } from '.';
 
-export const _validateHouseholdProperties = (
+const _validateHouseholdProperties = (
     householdInput: HouseholdAddInput | HouseholdUpdateInput
 ) => {
     const { address, name } = householdInput;
@@ -41,6 +41,25 @@ export const _validateHouseholdProperties = (
     if (address && !validateAddress(address)) {
         throw new UserInputError('Invalid address');
     }
+};
+
+const clearHouseholdHead = async (
+    query: MySqlDataSource['query'],
+    personId: number
+): Promise<void> => {
+    const sql = sqlFormat(`
+        UPDATE household
+            SET head_id = null
+        WHERE
+            head_id = ?;
+    `);
+
+    const values = [personId];
+
+    await query<DBHousehold[]>({
+        sql,
+        values,
+    });
 };
 
 const getHouseholds = async (
@@ -228,6 +247,16 @@ const archiveHousehold = async (
     householdId: number,
     clientId: number
 ): Promise<void> => {
+    const householdMembers = await personModule.getPeople(query, [], {
+        householdIds: [householdId],
+    });
+
+    if (householdMembers.length > 0) {
+        throw new UserInputError(
+            'Household must not have members to be removed'
+        );
+    }
+
     const sql = sqlFormat(`
         UPDATE household
         SET
@@ -247,4 +276,11 @@ const archiveHousehold = async (
     await logRecordChange(RecordTable.HOUSEHOLD, householdId, clientId);
 };
 
-export { getHouseholds, addHousehold, updateHousehold, archiveHousehold };
+export {
+    _validateHouseholdProperties,
+    clearHouseholdHead,
+    getHouseholds,
+    addHousehold,
+    updateHousehold,
+    archiveHousehold,
+};

@@ -31,7 +31,7 @@ const Household: HouseholdResolvers = {
     members: async ({ id }, _, { dataLoaders: { peopleByHousehold } }) => {
         const personResult = await peopleByHousehold.load(id);
 
-        return personResult ?? null;
+        return personResult ?? [];
     },
 };
 
