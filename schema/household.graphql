@@ -30,7 +30,6 @@ input AddressInput {
 }
 
 input HouseholdAddInput {
-    headId: Int
     name: String!
     address: AddressInput!
 }

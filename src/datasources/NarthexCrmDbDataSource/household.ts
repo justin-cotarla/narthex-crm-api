@@ -26,6 +26,7 @@ import { validateAddress, validateRecordName } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
 import * as householdModule from './household';
+import * as personModule from './person';
 
 import { NarthexCrmDbDataSource } from '.';
 
@@ -101,7 +102,7 @@ const addHousehold = async (
     householdAddInput: HouseholdAddInput,
     clientId: number
 ): Promise<number> => {
-    const { address, name, headId } = householdAddInput;
+    const { address, name } = householdAddInput;
 
     householdModule._validateHouseholdProperties(householdAddInput);
 
@@ -114,7 +115,6 @@ const addHousehold = async (
         { key: 'country', condition: true },
         { key: 'created_by', condition: true },
         { key: 'modified_by', condition: true },
-        { key: 'head_id', condition: headId !== undefined },
         { key: 'address_line_2', condition: address.line2 !== undefined },
     ]);
 
@@ -136,7 +136,6 @@ const addHousehold = async (
             address.country,
             clientId,
             clientId,
-            ...(headId !== undefined ? [headId] : []),
             ...(address.line2 !== undefined ? [address.line2] : []),
         ],
     });
@@ -167,6 +166,17 @@ const updateHousehold = async (
     }
 
     householdModule._validateHouseholdProperties(householdUpdateInput);
+
+    if (headId) {
+        const [householdHead] = await personModule.getPeople(query, [headId]);
+        if (!householdHead) {
+            throw new UserInputError('Household head not valid');
+        }
+
+        if (householdHead.household!.id !== id) {
+            throw new UserInputError('Household head not member of household');
+        }
+    }
 
     const setClause = buildSetClause([
         { key: 'modified_by', condition: true },
