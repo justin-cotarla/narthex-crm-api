@@ -71,7 +71,7 @@ describe('person', () => {
                 },
             ]);
 
-            const result = await getPeople(mockQuery, [], {
+            const result = await getPeople(mockQuery, {
                 archived: true,
             });
 
@@ -171,7 +171,7 @@ describe('person', () => {
                 },
             ]);
 
-            const result = await getPeople(mockQuery, []);
+            const result = await getPeople(mockQuery);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -245,7 +245,7 @@ describe('person', () => {
                 },
             ]);
 
-            const result = await getPeople(mockQuery, [2]);
+            const result = await getPeople(mockQuery, { personIds: [2] });
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -306,7 +306,7 @@ describe('person', () => {
         it('returns an empty array if there are no people', async () => {
             mockQuery.mockImplementation((): DBPerson[] => []);
 
-            const result = await getPeople(mockQuery, [4]);
+            const result = await getPeople(mockQuery, { personIds: [4] });
 
             expect(result).toEqual([]);
         });

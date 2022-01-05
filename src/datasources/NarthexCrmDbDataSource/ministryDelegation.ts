@@ -53,7 +53,9 @@ const addPersonToMinsitry = async (
     personId: number,
     clientId: number
 ): Promise<void> => {
-    const [person] = await personModule.getPeople(query, [personId]);
+    const [person] = await personModule.getPeople(query, {
+        personIds: [personId],
+    });
     const [ministry] = await ministryModule.getMinistries(query, {
         ministryIds: [ministryId],
     });

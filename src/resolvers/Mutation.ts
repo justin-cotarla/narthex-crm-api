@@ -108,7 +108,9 @@ const Mutation: MutationResolvers = {
             clientToken!.id
         );
 
-        const [person] = await narthexCrmDbDataSource.getPeople([personId]);
+        const [person] = await narthexCrmDbDataSource.getPeople({
+            personIds: [personId],
+        });
         return person;
     },
     updatePerson: async (
@@ -124,9 +126,9 @@ const Mutation: MutationResolvers = {
             personUpdateInput,
             clientToken!.id
         );
-        const [person] = await narthexCrmDbDataSource.getPeople([
-            personUpdateInput.id,
-        ]);
+        const [person] = await narthexCrmDbDataSource.getPeople({
+            personIds: [personUpdateInput.id],
+        });
 
         return person;
     },

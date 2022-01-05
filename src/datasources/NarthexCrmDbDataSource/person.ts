@@ -57,22 +57,27 @@ export const _validatePersonProperties = (
 
 const getPeople = async (
     query: MySqlDataSource['query'],
-    personIds: number[],
     options: {
+        personIds?: number[];
         sortKey?: PersonSortKey;
         paginationOptions?: PaginationOptions;
         archived?: boolean | null;
         householdIds?: number[];
     } = {}
 ): Promise<Person[]> => {
-    const { paginationOptions, sortKey, archived, householdIds } =
-        options ?? {};
+    const {
+        paginationOptions,
+        sortKey,
+        archived = false,
+        householdIds = [],
+        personIds = [],
+    } = options;
 
     const whereClause = buildWhereClause([
-        { clause: 'id in (?)', condition: personIds?.length !== 0 },
+        { clause: 'id in (?)', condition: personIds.length !== 0 },
         {
             clause: 'household_id in (?)',
-            condition: (householdIds?.length ?? 0) !== 0,
+            condition: householdIds.length !== 0,
         },
         { clause: 'archived <> 1', condition: !archived },
     ]);
@@ -107,7 +112,7 @@ const getPeople = async (
 
     const values = [
         ...(personIds.length !== 0 ? [personIds] : []),
-        ...((householdIds?.length ?? 0) !== 0 ? [householdIds] : []),
+        ...(householdIds.length !== 0 ? [householdIds] : []),
     ];
 
     const rows = await query<DBPerson[]>({
@@ -206,7 +211,9 @@ const updatePerson = async (
         title,
     } = personUpdateInput;
 
-    const [person] = await personModule.getPeople(query, [id]);
+    const [person] = await personModule.getPeople(query, {
+        personIds: [id],
+    });
 
     if (!person) {
         throw new NotFoundError('Person does not exist');

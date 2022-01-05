@@ -103,7 +103,7 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const people = await narthexCrmDbDataSource.getPeople([], {
+        const people = await narthexCrmDbDataSource.getPeople({
             sortKey: sortKey!,
             paginationOptions: paginationOptions!,
             archived,
@@ -120,7 +120,9 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const [person] = await narthexCrmDbDataSource.getPeople([personId]);
+        const [person] = await narthexCrmDbDataSource.getPeople({
+            personIds: [personId],
+        });
 
         return person;
     },

@@ -194,7 +194,9 @@ const updateHousehold = async (
     householdModule._validateHouseholdProperties(householdUpdateInput);
 
     if (headId) {
-        const [householdHead] = await personModule.getPeople(query, [headId]);
+        const [householdHead] = await personModule.getPeople(query, {
+            personIds: [headId],
+        });
         if (!householdHead) {
             throw new UserInputError('Household head not valid');
         }
@@ -254,7 +256,7 @@ const archiveHousehold = async (
     householdId: number,
     clientId: number
 ): Promise<void> => {
-    const householdMembers = await personModule.getPeople(query, [], {
+    const householdMembers = await personModule.getPeople(query, {
         householdIds: [householdId],
     });
 

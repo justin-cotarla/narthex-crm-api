@@ -8,9 +8,9 @@ const getPersonLoader = (narthexCrmDataSource: NarthexCrmDbDataSource) => {
     const batchPersonById = async (
         personIds: readonly number[]
     ): Promise<Person[][]> => {
-        const persons = await narthexCrmDataSource.getPeople(
-            personIds as number[]
-        );
+        const persons = await narthexCrmDataSource.getPeople({
+            personIds: personIds as number[],
+        });
 
         const personMap = R.groupBy(({ id }) => id.toString(), persons);
 
@@ -26,7 +26,7 @@ const getPeopleByHouseholdLoader = (
     const batchPeopleByHouseholdId = async (
         householdIds: readonly number[]
     ): Promise<Person[][]> => {
-        const persons = await narthexCrmDataSource.getPeople([], {
+        const persons = await narthexCrmDataSource.getPeople({
             householdIds: householdIds as number[],
         });
 
