@@ -42,9 +42,13 @@ const _validateMinistryProperties = (
 
 const getMinistries = async (
     query: MySqlDataSource['query'],
-    ministryIds: number[],
-    archived?: boolean | null
+    options: {
+        ministryIds?: number[];
+        archived?: boolean | null;
+    } = {}
 ): Promise<Ministry[]> => {
+    const { archived = false, ministryIds = [] } = options;
+
     const whereClause = buildWhereClause([
         { clause: 'id in (?)', condition: ministryIds?.length !== 0 },
         { clause: 'archived <> 1', condition: !archived },
@@ -118,7 +122,9 @@ const updateMinistry = async (
 ): Promise<void> => {
     const { id, name, color } = ministryUpdateInput;
 
-    const [ministry] = await ministryModule.getMinistries(query, [id]);
+    const [ministry] = await ministryModule.getMinistries(query, {
+        ministryIds: [id],
+    });
 
     if (!ministry) {
         throw new NotFoundError('Person does not exist');

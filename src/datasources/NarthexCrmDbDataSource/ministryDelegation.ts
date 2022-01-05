@@ -54,7 +54,9 @@ const addPersonToMinsitry = async (
     clientId: number
 ): Promise<void> => {
     const [person] = await personModule.getPeople(query, [personId]);
-    const [ministry] = await ministryModule.getMinistries(query, [ministryId]);
+    const [ministry] = await ministryModule.getMinistries(query, {
+        ministryIds: [ministryId],
+    });
 
     if (!person || person.archived) {
         throw new UserInputError('Person does not exist or is archived');

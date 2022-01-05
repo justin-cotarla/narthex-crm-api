@@ -8,9 +8,9 @@ const getMinistryLoader = (narthexCrmDataSource: NarthexCrmDbDataSource) => {
     const batchMinistryById = async (
         ministryIds: readonly number[]
     ): Promise<Ministry[][]> => {
-        const ministries = await narthexCrmDataSource.getMinistries(
-            ministryIds as number[]
-        );
+        const ministries = await narthexCrmDataSource.getMinistries({
+            ministryIds: ministryIds as number[],
+        });
 
         const ministryMap = R.groupBy(({ id }) => id.toString(), ministries);
 

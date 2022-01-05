@@ -55,7 +55,9 @@ describe('ministry', () => {
                 },
             ]);
 
-            const result = await getMinistries(mockQuery, [], true);
+            const result = await getMinistries(mockQuery, {
+                archived: true,
+            });
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -120,7 +122,7 @@ describe('ministry', () => {
                 },
             ]);
 
-            const result = await getMinistries(mockQuery, []);
+            const result = await getMinistries(mockQuery);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -173,7 +175,7 @@ describe('ministry', () => {
                 },
             ]);
 
-            const result = await getMinistries(mockQuery, [1]);
+            const result = await getMinistries(mockQuery, { ministryIds: [1] });
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -216,7 +218,7 @@ describe('ministry', () => {
         it('returns an empty array if there are no ministries', async () => {
             mockQuery.mockImplementation((): DBMinistry[] => []);
 
-            const result = await getMinistries(mockQuery, [4]);
+            const result = await getMinistries(mockQuery, { ministryIds: [4] });
 
             expect(result).toEqual([]);
         });

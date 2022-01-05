@@ -52,9 +52,9 @@ const Mutation: MutationResolvers = {
             clientToken!.id
         );
 
-        const [ministry] = await narthexCrmDbDataSource.getMinistries([
-            ministryId,
-        ]);
+        const [ministry] = await narthexCrmDbDataSource.getMinistries({
+            ministryIds: [ministryId],
+        });
         return ministry;
     },
     updateMinistry: async (
@@ -70,9 +70,9 @@ const Mutation: MutationResolvers = {
             ministryUpdateInput,
             clientToken!.id
         );
-        const [ministry] = await narthexCrmDbDataSource.getMinistries([
-            ministryUpdateInput.id,
-        ]);
+        const [ministry] = await narthexCrmDbDataSource.getMinistries({
+            ministryIds: [ministryUpdateInput.id],
+        });
 
         return ministry;
     },

@@ -67,10 +67,9 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const ministries = await narthexCrmDbDataSource.getMinistries(
-            [],
-            archived
-        );
+        const ministries = await narthexCrmDbDataSource.getMinistries({
+            archived,
+        });
 
         return ministries;
     },
@@ -84,9 +83,9 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const [ministry] = await narthexCrmDbDataSource.getMinistries([
-            ministryId,
-        ]);
+        const [ministry] = await narthexCrmDbDataSource.getMinistries({
+            ministryIds: [ministryId],
+        });
 
         return ministry;
     },
