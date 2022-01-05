@@ -201,9 +201,9 @@ const Mutation: MutationResolvers = {
             clientToken!.id
         );
 
-        const [household] = await narthexCrmDbDataSource.getHouseholds([
-            householdId,
-        ]);
+        const [household] = await narthexCrmDbDataSource.getHouseholds({
+            householdIds: [householdId],
+        });
         return household;
     },
     updateHousehold: async (
@@ -219,9 +219,9 @@ const Mutation: MutationResolvers = {
             householdUpdateInput,
             clientToken!.id
         );
-        const [household] = await narthexCrmDbDataSource.getHouseholds([
-            householdUpdateInput.id,
-        ]);
+        const [household] = await narthexCrmDbDataSource.getHouseholds({
+            householdIds: [householdUpdateInput.id],
+        });
 
         return household;
     },

@@ -139,7 +139,7 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const households = await narthexCrmDbDataSource.getHouseholds([], {
+        const households = await narthexCrmDbDataSource.getHouseholds({
             sortKey: sortKey!,
             paginationOptions: paginationOptions!,
             archived,
@@ -156,9 +156,9 @@ const Query: QueryResolvers = {
             scopes: ['admin'],
         });
 
-        const [household] = await narthexCrmDbDataSource.getHouseholds([
-            householdId,
-        ]);
+        const [household] = await narthexCrmDbDataSource.getHouseholds({
+            householdIds: [householdId],
+        });
 
         return household;
     },

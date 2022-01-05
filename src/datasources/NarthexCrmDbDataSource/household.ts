@@ -64,17 +64,22 @@ const clearHouseholdHead = async (
 
 const getHouseholds = async (
     query: MySqlDataSource['query'],
-    householdIds: number[],
     options: {
+        householdIds?: number[];
         sortKey?: HouseholdSortKey;
         paginationOptions?: PaginationOptions;
         archived?: boolean | null;
     } = {}
 ): Promise<Household[]> => {
-    const { paginationOptions, sortKey, archived } = options ?? {};
+    const {
+        paginationOptions,
+        sortKey,
+        archived = false,
+        householdIds = [],
+    } = options;
 
     const whereClause = buildWhereClause([
-        { clause: 'id in (?)', condition: householdIds?.length !== 0 },
+        { clause: 'id in (?)', condition: householdIds.length !== 0 },
         { clause: 'archived <> 1', condition: !archived },
     ]);
 
@@ -174,7 +179,9 @@ const updateHousehold = async (
 ): Promise<void> => {
     const { id, address, name, headId } = householdUpdateInput;
 
-    const [household] = await householdModule.getHouseholds(query, [id]);
+    const [household] = await householdModule.getHouseholds(query, {
+        householdIds: [id],
+    });
 
     if (!household) {
         throw new NotFoundError('Household does not exist');

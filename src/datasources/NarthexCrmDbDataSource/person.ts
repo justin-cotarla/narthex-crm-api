@@ -137,9 +137,9 @@ const addPerson = async (
     personModule._validatePersonProperties(personAddInput);
 
     if (householdId) {
-        const [household] = await householdModule.getHouseholds(query, [
-            householdId,
-        ]);
+        const [household] = await householdModule.getHouseholds(query, {
+            householdIds: [householdId],
+        });
         if (!household) {
             throw new UserInputError('Household does not exist');
         }
@@ -219,9 +219,9 @@ const updatePerson = async (
     personModule._validatePersonProperties(personUpdateInput);
 
     if (householdId) {
-        const [household] = await householdModule.getHouseholds(query, [
-            householdId,
-        ]);
+        const [household] = await householdModule.getHouseholds(query, {
+            householdIds: [householdId],
+        });
         if (!household) {
             throw new UserInputError('Household does not exist');
         }
