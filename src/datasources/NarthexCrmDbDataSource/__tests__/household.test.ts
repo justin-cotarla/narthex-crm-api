@@ -11,8 +11,7 @@ import {
     SortOrder,
 } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
-import { mapHousehold } from '../../../util/mappers';
-import * as validationModule from '../../../util/validation';
+import { validateRecordName, validateAddress } from '../../../util/validation';
 import * as householdModule from '../household';
 import {
     addHousehold,
@@ -27,29 +26,33 @@ import { getPeople } from '../person';
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
 
-jest.mock('../../../util/mappers');
-const mockMapHousehold = mocked(mapHousehold).mockImplementation(
-    () => mockHousehold
-);
-
 jest.mock('../person');
 const mockGetPeople = mocked(getPeople);
+
+jest.mock('../../../util/validation');
+const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
+    () => true
+);
+const mockValidateAddress = mocked(validateAddress).mockImplementation(
+    () => true
+);
 
 beforeEach(() => {
     mockQuery.mockClear();
     mockLogRecordChange.mockClear();
-    mockMapHousehold.mockClear();
     mockGetPeople.mockClear();
+    mockValidateRecordName.mockClear();
+    mockValidateAddress.mockClear();
 });
 
 describe('household', () => {
     describe('getHouseholds', () => {
-        it('gets all unarchived households', async () => {
+        it('gets households with default arguments', async () => {
             mockQuery.mockImplementation((): DBHousehold[] => [
                 mockDBHousehold,
             ]);
 
-            const result = await getHouseholds(mockQuery);
+            await getHouseholds(mockQuery);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -75,88 +78,16 @@ describe('household', () => {
                 `),
                 values: [],
             });
-            expect(mockMapHousehold).toHaveBeenCalled();
-            expect(result).toStrictEqual([mockHousehold]);
         });
 
-        it('gets all unarchived households', async () => {
+        it('gets households with all arguments', async () => {
             mockQuery.mockImplementation((): DBHousehold[] => [
                 mockDBHousehold,
             ]);
 
-            const result = await getHouseholds(mockQuery, {
+            await getHouseholds(mockQuery, {
                 archived: true,
-            });
-
-            expect(mockQuery).toBeCalledWith({
-                sql: sqlFormat(`
-                    SELECT
-                        id,
-                        head_id,
-                        name,
-                        address_line_1,
-                        address_line_2,
-                        city,
-                        state,
-                        postal_code,
-                        country,
-                        created_by,
-                        creation_timestamp,
-                        modified_by,
-                        modification_timestamp,
-                        archived
-                    FROM
-                        household
-                `),
-                values: [],
-            });
-            expect(mockMapHousehold).toHaveBeenCalled();
-            expect(result).toStrictEqual([mockHousehold]);
-        });
-
-        it('gets households by id', async () => {
-            mockQuery.mockImplementation((): DBHousehold[] => [
-                mockDBHousehold,
-            ]);
-
-            const result = await getHouseholds(mockQuery, {
                 householdIds: [1],
-            });
-
-            expect(mockQuery).toBeCalledWith({
-                sql: sqlFormat(`
-                    SELECT
-                        id,
-                        head_id,
-                        name,
-                        address_line_1,
-                        address_line_2,
-                        city,
-                        state,
-                        postal_code,
-                        country,
-                        created_by,
-                        creation_timestamp,
-                        modified_by,
-                        modification_timestamp,
-                        archived
-                    FROM
-                        household
-                    WHERE
-                        id in (?)
-                        and archived <> 1
-                `),
-                values: [[1]],
-            });
-            expect(mockMapHousehold).toHaveBeenCalled();
-            expect(result).toStrictEqual([mockHousehold]);
-        });
-        it('gets paginated households', async () => {
-            mockQuery.mockImplementation((): DBHousehold[] => [
-                mockDBHousehold,
-            ]);
-
-            const result = await getHouseholds(mockQuery, {
                 sortKey: HouseholdSortKey.Id,
                 paginationOptions: {
                     limit: 1,
@@ -185,16 +116,14 @@ describe('household', () => {
                     FROM
                         household
                     WHERE
-                        archived <> 1
+                        id in (?)
                     order by
                         ID DESC
-                    limit 1
-                    offset 1
+                    limit
+                        1 offset 1
                 `),
-                values: [],
+                values: [[1]],
             });
-            expect(mockMapHousehold).toHaveBeenCalled();
-            expect(result).toStrictEqual([mockHousehold]);
         });
 
         it('returns an empty array if query returns nothing', async () => {
@@ -202,25 +131,11 @@ describe('household', () => {
 
             const result = await getHouseholds(mockQuery);
 
-            expect(mockMapHousehold).toHaveBeenCalledTimes(0);
             expect(result).toStrictEqual([]);
         });
     });
     describe('addHousehold', () => {
-        let spyValidateHouseholdProperties: SpyInstance<unknown, unknown[]>;
-
-        beforeEach(() => {
-            spyValidateHouseholdProperties = spyOn(
-                householdModule,
-                '_validateHouseholdProperties'
-            ).mockImplementation(jest.fn());
-        });
-
-        afterEach(() => {
-            spyValidateHouseholdProperties.mockRestore();
-        });
-
-        it('adds a new minimal household', async () => {
+        it('adds a minimal household', async () => {
             mockQuery.mockImplementation(() => ({
                 insertId: 1,
             }));
@@ -240,7 +155,6 @@ describe('household', () => {
                 1
             );
 
-            expect(spyValidateHouseholdProperties).toBeCalled();
             expect(result).toBe(1);
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -271,7 +185,7 @@ describe('household', () => {
             });
         });
 
-        it('adds a new full household', async () => {
+        it('adds a full household', async () => {
             mockQuery.mockImplementation(() => ({
                 insertId: 1,
             }));
@@ -292,7 +206,6 @@ describe('household', () => {
                 1
             );
 
-            expect(spyValidateHouseholdProperties).toBeCalled();
             expect(result).toBe(1);
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -345,126 +258,22 @@ describe('household', () => {
                 )
             ).rejects.toThrowError(Error);
 
-            expect(spyValidateHouseholdProperties).toBeCalled();
             expect(mockQuery).toBeCalled();
         });
     });
 
     describe('updateHousehold', () => {
-        let spyValidateHouseholdProperties: SpyInstance<unknown, unknown[]>;
         let spyGetHouseholds: SpyInstance<unknown, unknown[]>;
 
         beforeEach(() => {
-            spyValidateHouseholdProperties = spyOn(
-                householdModule,
-                '_validateHouseholdProperties'
-            ).mockImplementation(jest.fn());
             spyGetHouseholds = spyOn(householdModule, 'getHouseholds');
         });
 
         afterEach(() => {
-            spyValidateHouseholdProperties.mockRestore();
             spyGetHouseholds.mockRestore();
         });
-        it('updates the household address', async () => {
-            spyGetHouseholds.mockImplementation(() => ['household']);
-            mockQuery.mockImplementation(
-                (): DBUpdateResponse => ({
-                    affectedRows: 1,
-                    changedRows: 1,
-                })
-            );
-
-            await updateHousehold(
-                mockQuery,
-                mockLogRecordChange,
-                {
-                    id: 1,
-                    address: {
-                        line1: '123 rue Guy',
-                        line2: 'Apt 123',
-                        city: 'Anjou',
-                        state: 'Quebec',
-                        postalCode: 'H0H 0H0',
-                        country: 'CA',
-                    },
-                },
-                2
-            );
-
-            expect(spyGetHouseholds).toHaveBeenCalled();
-            expect(spyValidateHouseholdProperties).toHaveBeenCalled();
-
-            expect(mockQuery).toHaveBeenCalledWith({
-                sql: sqlFormat(`
-                    UPDATE
-                        household
-                    SET
-                        modified_by = ?,
-                        address_line_1 = ?,
-                        address_line_2 = ?,
-                        city = ?,
-                        state = ?,
-                        postal_code = ?,
-                        country = ?
-                    WHERE
-                        ID = ?;
-                `),
-                values: [
-                    2,
-                    '123 rue Guy',
-                    'Apt 123',
-                    'Anjou',
-                    'Quebec',
-                    'H0H 0H0',
-                    'CA',
-                    1,
-                ],
-            });
-
-            expect(mockLogRecordChange).toHaveBeenCalledWith('household', 1, 2);
-        });
-
-        it('updates the household name', async () => {
-            spyGetHouseholds.mockImplementation(() => ['household']);
-            mockQuery.mockImplementation(
-                (): DBUpdateResponse => ({
-                    affectedRows: 1,
-                    changedRows: 1,
-                })
-            );
-
-            await updateHousehold(
-                mockQuery,
-                mockLogRecordChange,
-                {
-                    id: 1,
-                    name: 'Smith Family',
-                },
-                2
-            );
-
-            expect(spyGetHouseholds).toHaveBeenCalled();
-            expect(spyValidateHouseholdProperties).toHaveBeenCalled();
-
-            expect(mockQuery).toHaveBeenCalledWith({
-                sql: sqlFormat(`
-                    UPDATE
-                        household
-                    SET
-                        modified_by = ?,
-                        name = ?
-                    WHERE
-                        ID = ?;
-                `),
-                values: [2, 'Smith Family', 1],
-            });
-
-            expect(mockLogRecordChange).toHaveBeenCalledWith('household', 1, 2);
-        });
-
-        it('updates the household head', async () => {
-            spyGetHouseholds.mockImplementation(() => ['household']);
+        it('updates a household', async () => {
+            spyGetHouseholds.mockImplementation(() => [mockHousehold]);
             mockGetPeople.mockImplementation(async () => [mockPerson]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
@@ -479,13 +288,20 @@ describe('household', () => {
                 {
                     id: 1,
                     headId: 1,
+                    address: {
+                        line1: '123 rue Guy',
+                        line2: 'Apt 123',
+                        city: 'Anjou',
+                        state: 'Quebec',
+                        postalCode: 'H0H 0H0',
+                        country: 'CA',
+                    },
+                    name: 'Smith Family',
                 },
                 2
             );
 
             expect(spyGetHouseholds).toHaveBeenCalled();
-            expect(spyValidateHouseholdProperties).toHaveBeenCalled();
-            expect(mockGetPeople).toHaveBeenCalled();
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
@@ -493,18 +309,36 @@ describe('household', () => {
                         household
                     SET
                         modified_by = ?,
-                        head_id = ?
+                        name = ?,
+                        head_id = ?,
+                        address_line_1 = ?,
+                        address_line_2 = ?,
+                        city = ?,
+                        state = ?,
+                        postal_code = ?,
+                        country = ?
                     WHERE
                         ID = ?;
                 `),
-                values: [2, 1, 1],
+                values: [
+                    2,
+                    'Smith Family',
+                    1,
+                    '123 rue Guy',
+                    'Apt 123',
+                    'Anjou',
+                    'Quebec',
+                    'H0H 0H0',
+                    'CA',
+                    1,
+                ],
             });
 
             expect(mockLogRecordChange).toHaveBeenCalledWith('household', 1, 2);
         });
 
         it('throws an error if the provided head does not exist', async () => {
-            spyGetHouseholds.mockImplementation(() => ['household']);
+            spyGetHouseholds.mockImplementation(() => [mockHousehold]);
             mockGetPeople.mockImplementation(async () => []);
 
             await expect(
@@ -520,7 +354,6 @@ describe('household', () => {
             ).rejects.toThrowError(UserInputError);
 
             expect(spyGetHouseholds).toHaveBeenCalled();
-            expect(spyValidateHouseholdProperties).toHaveBeenCalled();
             expect(mockGetPeople).toHaveBeenCalled();
 
             expect(mockQuery).toHaveBeenCalledTimes(0);
@@ -528,7 +361,7 @@ describe('household', () => {
         });
 
         it('throws an error if the provided head is not part of the household', async () => {
-            spyGetHouseholds.mockImplementation(() => ['household']);
+            spyGetHouseholds.mockImplementation(() => [mockHousehold]);
             mockGetPeople.mockImplementation(async () => [
                 {
                     ...mockPerson,
@@ -551,7 +384,6 @@ describe('household', () => {
             ).rejects.toThrowError(UserInputError);
 
             expect(spyGetHouseholds).toHaveBeenCalled();
-            expect(spyValidateHouseholdProperties).toHaveBeenCalled();
             expect(mockGetPeople).toHaveBeenCalled();
 
             expect(mockQuery).toHaveBeenCalledTimes(0);
@@ -594,7 +426,7 @@ describe('household', () => {
         });
 
         it('throws an error if the household was not updated on the database', async () => {
-            spyGetHouseholds.mockImplementation(() => ['household']);
+            spyGetHouseholds.mockImplementation(() => [mockHousehold]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -674,26 +506,7 @@ describe('household', () => {
     });
 
     describe('_validateHouseholdProperties', () => {
-        let spyValidateRecordName: SpyInstance<unknown, unknown[]>;
-        let spyValidateAddress: SpyInstance<unknown, unknown[]>;
-
-        beforeEach(() => {
-            spyValidateRecordName = spyOn(
-                validationModule,
-                'validateRecordName'
-            ).mockImplementation(() => true);
-            spyValidateAddress = spyOn(
-                validationModule,
-                'validateAddress'
-            ).mockImplementation(() => true);
-        });
-
-        afterEach(() => {
-            spyValidateRecordName.mockRestore();
-            spyValidateAddress.mockRestore();
-        });
-
-        it('accepts valid household properties', () => {
+        it('validates all household properties', () => {
             _validateHouseholdProperties({
                 address: {
                     line1: '123 rue Guy',
@@ -704,41 +517,8 @@ describe('household', () => {
                 },
                 name: 'Smith Family',
             } as HouseholdAddInput);
-        });
-
-        it('throws an error given an invalid name', () => {
-            spyValidateRecordName.mockImplementation(() => false);
-
-            expect(() => {
-                _validateHouseholdProperties({
-                    address: {
-                        line1: '123 rue Guy',
-                        city: 'Anjou',
-                        state: 'Quebec',
-                        postalCode: 'H0H 0H0',
-                        country: 'CA',
-                    },
-                    name: 'S',
-                } as HouseholdAddInput);
-            }).toThrowError(UserInputError);
-        });
-
-        it('throws an error given an invalid address', () => {
-            spyValidateRecordName.mockImplementationOnce(() => true);
-            spyValidateAddress.mockImplementationOnce(() => false);
-
-            expect(() => {
-                _validateHouseholdProperties({
-                    address: {
-                        line1: '123 rue Guy',
-                        city: 'Anjou',
-                        state: 'Quebec',
-                        postalCode: 'H0H 0H0',
-                        country: 'CANADA',
-                    },
-                    name: 'Smith Family',
-                } as HouseholdAddInput);
-            }).toThrowError(UserInputError);
+            expect(mockValidateRecordName).toBeCalled();
+            expect(mockValidateAddress).toBeCalled();
         });
     });
 

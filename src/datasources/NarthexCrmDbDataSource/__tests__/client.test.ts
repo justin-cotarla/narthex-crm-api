@@ -2,6 +2,7 @@ import { ForbiddenError, UserInputError } from 'apollo-server';
 import { mocked, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
+import { mockDBClient } from '../../../__mocks__/database';
 import { DBClient, DBUpdateResponse } from '../../../types/database';
 import {
     hashPassword,
@@ -18,11 +19,11 @@ const mockLogClientConnection = jest.fn();
 
 jest.mock('../../../util/crypto');
 const mockHashPassword = mocked(hashPassword);
+const mockGenerateClientToken = mocked(generateClientToken);
 
 jest.mock('../../../util/validation');
-const mockValidateEmail = mocked(validateEmail);
-const mockVerifyHash = mocked(verifyHash);
-const mockGenerateClientToken = mocked(generateClientToken);
+const mockValidateEmail = mocked(validateEmail).mockImplementation(() => true);
+const mockVerifyHash = mocked(verifyHash).mockImplementation(async () => true);
 
 const spyMapClient = spyOn(mappers, 'mapClient');
 
@@ -42,7 +43,6 @@ describe('client', () => {
                 insertId: 1,
             }));
 
-            mockValidateEmail.mockImplementation(() => true);
             mockHashPassword.mockImplementation(async () => 'hash');
 
             const result = await addClient(
@@ -97,28 +97,9 @@ describe('client', () => {
         });
 
         it('gets all clients', async () => {
-            mockQuery.mockImplementation((): DBClient[] => [
-                {
-                    id: 1,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'email@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-                {
-                    id: 2,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'test@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-            ]);
+            mockQuery.mockImplementation((): DBClient[] => [mockDBClient]);
 
-            const result = await getClients(mockQuery, []);
+            await getClients(mockQuery, []);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -135,49 +116,12 @@ describe('client', () => {
                 values: [],
             });
             expect(spyMapClient).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    active: true,
-                    creationTimestamp: 1639872000,
-                    emailAddress: 'email@example.com',
-                    id: 1,
-                    lastLoginTimestamp: 1639872000,
-                    permissionScope: 'admin',
-                },
-                {
-                    active: true,
-                    creationTimestamp: 1639872000,
-                    emailAddress: 'test@example.com',
-                    id: 2,
-                    lastLoginTimestamp: 1639872000,
-                    permissionScope: 'admin',
-                },
-            ]);
         });
 
         it('gets certain clients', async () => {
-            mockQuery.mockImplementation((): DBClient[] => [
-                {
-                    id: 1,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'email@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-                {
-                    id: 2,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'test@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-            ]);
+            mockQuery.mockImplementation((): DBClient[] => [mockDBClient]);
 
-            const result = await getClients(mockQuery, [1, 2]);
+            await getClients(mockQuery, [1]);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -192,27 +136,8 @@ describe('client', () => {
                     client
                         WHERE id in (?)
                 `),
-                values: [[1, 2]],
+                values: [[1]],
             });
-            expect(spyMapClient).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    active: true,
-                    creationTimestamp: 1639872000,
-                    emailAddress: 'email@example.com',
-                    id: 1,
-                    lastLoginTimestamp: 1639872000,
-                    permissionScope: 'admin',
-                },
-                {
-                    active: true,
-                    creationTimestamp: 1639872000,
-                    emailAddress: 'test@example.com',
-                    id: 2,
-                    lastLoginTimestamp: 1639872000,
-                    permissionScope: 'admin',
-                },
-            ]);
         });
 
         it('returns an empty array if there are not clients', async () => {
@@ -231,17 +156,7 @@ describe('client', () => {
         });
 
         it('generates a token', async () => {
-            mockQuery.mockImplementation((): DBClient[] => [
-                {
-                    id: 1,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'email@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-            ]);
+            mockQuery.mockImplementation((): DBClient[] => [mockDBClient]);
             mockVerifyHash.mockImplementation(async () => true);
             mockGenerateClientToken.mockImplementation(async () => 'token');
 
@@ -294,13 +209,8 @@ describe('client', () => {
         it('throws an error if the client is deactivated', async () => {
             mockQuery.mockImplementation((): DBClient[] => [
                 {
-                    id: 1,
+                    ...mockDBClient,
                     active: 0,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'email@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
                 },
             ]);
 
@@ -319,17 +229,7 @@ describe('client', () => {
         });
 
         it('throws an error if the password is invalid', async () => {
-            mockQuery.mockImplementation((): DBClient[] => [
-                {
-                    id: 1,
-                    active: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    email_address: 'email@example.com',
-                    pass_hash: 'hash',
-                    permission_scope: 'admin',
-                    last_login_timestamp: new Date('2021/12/19'),
-                },
-            ]);
+            mockQuery.mockImplementation((): DBClient[] => [mockDBClient]);
             mockVerifyHash.mockImplementation(async () => false);
 
             await expect(
@@ -349,7 +249,7 @@ describe('client', () => {
 
     describe('updateClient', () => {
         it('updates a client', async () => {
-            mockQuery.mockImplementationOnce((): DBClient[] => [{ id: 1 }]);
+            mockQuery.mockImplementationOnce((): DBClient[] => [mockDBClient]);
             mockQuery.mockImplementationOnce(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -390,7 +290,7 @@ describe('client', () => {
         });
 
         it('throws an error if no changes are provided', async () => {
-            mockQuery.mockImplementationOnce((): DBClient[] => [{ id: 1 }]);
+            mockQuery.mockImplementationOnce((): DBClient[] => [mockDBClient]);
 
             await expect(
                 updateClient(mockQuery, {
@@ -402,7 +302,7 @@ describe('client', () => {
         });
 
         it('throws an error if the client was not updated on the database', async () => {
-            mockQuery.mockImplementationOnce((): DBClient[] => [{ id: 1 }]);
+            mockQuery.mockImplementationOnce((): DBClient[] => [mockDBClient]);
             mockQuery.mockImplementationOnce(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,

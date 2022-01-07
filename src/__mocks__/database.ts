@@ -1,5 +1,21 @@
-import { DBHousehold, DBPerson } from '../types/database';
+import {
+    DBClient,
+    DBHousehold,
+    DBMinistry,
+    DBMinistryDelegation,
+    DBPerson,
+} from '../types/database';
 import { Gender } from '../types/generated/graphql';
+
+const mockDBClient: DBClient = {
+    id: 1,
+    active: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    email_address: 'email@example.com',
+    pass_hash: 'hash',
+    permission_scope: 'admin',
+    last_login_timestamp: new Date('2021/12/19'),
+};
 
 const mockDBHousehold: DBHousehold = {
     id: 1,
@@ -34,4 +50,31 @@ const mockDBPerson: DBPerson = {
     archived: 0,
 };
 
-export { mockDBHousehold, mockDBPerson };
+const mockDBMinistry: DBMinistry = {
+    id: 1,
+    color: 15814693,
+    name: 'Choir',
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
+const mockDBMinistryDelegation: DBMinistryDelegation = {
+    ministry_id: 1,
+    person_id: 2,
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
+export {
+    mockDBHousehold,
+    mockDBPerson,
+    mockDBMinistry,
+    mockDBClient,
+    mockDBMinistryDelegation,
+};

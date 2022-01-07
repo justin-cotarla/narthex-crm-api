@@ -1,4 +1,9 @@
-import { Gender, Household, Person } from '../types/generated/graphql';
+import {
+    Gender,
+    Household,
+    Ministry,
+    Person,
+} from '../types/generated/graphql';
 
 const mockHousehold: Household = {
     id: 1,
@@ -52,4 +57,19 @@ const mockPerson: Person = {
     title: 'Mr',
 };
 
-export { mockHousehold, mockPerson };
+const mockMinistry: Ministry = {
+    archived: false,
+    color: '#F15025',
+    createdBy: {
+        id: 1,
+    },
+    creationTimestamp: 1639872000,
+    id: 1,
+    modificationTimestamp: 1639872000,
+    modifiedBy: {
+        id: 1,
+    },
+    name: 'Choir',
+};
+
+export { mockHousehold, mockPerson, mockMinistry };

@@ -1,12 +1,13 @@
 import { UserInputError } from 'apollo-server';
-import { SpyInstance, spyOn } from 'jest-mock';
+import { mocked, SpyInstance, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
+import { mockDBMinistry } from '../../../__mocks__/database';
+import { mockMinistry } from '../../../__mocks__/schema';
 import { DBMinistry, DBUpdateResponse } from '../../../types/database';
 import { MinistryAddInput } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
-import * as mappers from '../../../util/mappers';
-import * as validationModule from '../../../util/validation';
+import { validateRecordName, validateColor } from '../../../util/validation';
 import * as ministryModule from '../ministry';
 import {
     addMinistry,
@@ -18,111 +19,25 @@ import {
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
 
-const spyMapMinistry = spyOn(mappers, 'mapMinistry');
+jest.mock('../../../util/validation');
+const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
+    () => true
+);
+const mockValidateColor = mocked(validateColor).mockImplementation(() => true);
 
 beforeEach(() => {
     mockQuery.mockClear();
     mockLogRecordChange.mockClear();
+    mockValidateColor.mockClear();
+    mockValidateRecordName.mockClear();
 });
 
 describe('ministry', () => {
     describe('getMinistries', () => {
-        beforeEach(() => {
-            spyMapMinistry.mockClear();
-        });
+        it('gets ministries with default arguments', async () => {
+            mockQuery.mockImplementation((): DBMinistry[] => [mockDBMinistry]);
 
-        it('gets all ministries', async () => {
-            mockQuery.mockImplementation((): DBMinistry[] => [
-                {
-                    id: 1,
-                    color: 15814693,
-                    name: 'Choir',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-                {
-                    id: 2,
-                    color: 11780024,
-                    name: 'Cleaning',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 1,
-                },
-            ]);
-
-            const result = await getMinistries(mockQuery, {
-                archived: true,
-            });
-
-            expect(mockQuery).toBeCalledWith({
-                sql: sqlFormat(`
-                    SELECT
-                        id,
-                        name,
-                        color,
-                        created_by,
-                        creation_timestamp,
-                        modified_by,
-                        modification_timestamp,
-                        archived
-                    FROM
-                        ministry
-                    `),
-                values: [],
-            });
-            expect(spyMapMinistry).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    archived: false,
-                    color: '#F15025',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    id: 1,
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    name: 'Choir',
-                },
-                {
-                    archived: true,
-                    color: '#B3BFB8',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    id: 2,
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    name: 'Cleaning',
-                },
-            ]);
-        });
-
-        it('gets all unarchived ministries', async () => {
-            mockQuery.mockImplementation((): DBMinistry[] => [
-                {
-                    id: 1,
-                    color: 15814693,
-                    name: 'Choir',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-            ]);
-
-            const result = await getMinistries(mockQuery);
+            await getMinistries(mockQuery);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -142,40 +57,15 @@ describe('ministry', () => {
                     `),
                 values: [],
             });
-            expect(spyMapMinistry).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    archived: false,
-                    color: '#F15025',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    id: 1,
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    name: 'Choir',
-                },
-            ]);
         });
 
-        it('gets certain ministries', async () => {
-            mockQuery.mockImplementation((): DBMinistry[] => [
-                {
-                    id: 1,
-                    color: 15814693,
-                    name: 'Choir',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-            ]);
+        it('gets ministries with all arguments', async () => {
+            mockQuery.mockImplementation((): DBMinistry[] => [mockDBMinistry]);
 
-            const result = await getMinistries(mockQuery, { ministryIds: [1] });
+            await getMinistries(mockQuery, {
+                archived: true,
+                ministryIds: [1],
+            });
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -192,27 +82,9 @@ describe('ministry', () => {
                         ministry
                     WHERE
                         id in (?)
-                        and archived <> 1
-                `),
+                    `),
                 values: [[1]],
             });
-            expect(spyMapMinistry).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    archived: false,
-                    color: '#F15025',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    id: 1,
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    name: 'Choir',
-                },
-            ]);
         });
 
         it('returns an empty array if there are no ministries', async () => {
@@ -224,20 +96,32 @@ describe('ministry', () => {
         });
     });
     describe('addMinistry', () => {
-        let spyValidateMinistryProperties: SpyInstance<unknown, unknown[]>;
+        it('adds a minimal ministry', async () => {
+            mockQuery.mockImplementation(() => ({
+                insertId: 1,
+            }));
 
-        beforeEach(() => {
-            spyValidateMinistryProperties = spyOn(
-                ministryModule,
-                '_validateMinistryProperties'
-            ).mockImplementation(jest.fn());
+            const result = await addMinistry(
+                mockQuery,
+                {
+                    name: 'Choir',
+                },
+                1
+            );
+
+            expect(result).toBe(1);
+            expect(mockQuery).toBeCalledWith({
+                sql: sqlFormat(`
+                INSERT INTO
+                    ministry (name, color, created_by, modified_by)
+                VALUES
+                    (?, ?, ?, ?)
+                `),
+                values: ['Choir', 11780024, 1, 1],
+            });
         });
 
-        afterEach(() => {
-            spyValidateMinistryProperties.mockRestore();
-        });
-
-        it('adds a new ministry', async () => {
+        it('adds a full ministry', async () => {
             mockQuery.mockImplementation(() => ({
                 insertId: 1,
             }));
@@ -251,7 +135,6 @@ describe('ministry', () => {
                 1
             );
 
-            expect(spyValidateMinistryProperties).toBeCalled();
             expect(result).toBe(1);
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -276,31 +159,24 @@ describe('ministry', () => {
                     },
                     1
                 )
-            ).rejects.toThrowError(Error);
+            ).rejects.toThrowError(DatabaseError);
 
-            expect(spyValidateMinistryProperties).toBeCalled();
             expect(mockQuery).toBeCalled();
         });
     });
 
     describe('updateMinistry', () => {
-        let spyValidateMinistryProperties: SpyInstance<unknown, unknown[]>;
         let spyGetMinistries: SpyInstance<unknown, unknown[]>;
 
         beforeEach(() => {
-            spyValidateMinistryProperties = spyOn(
-                ministryModule,
-                '_validateMinistryProperties'
-            ).mockImplementation(jest.fn());
             spyGetMinistries = spyOn(ministryModule, 'getMinistries');
         });
 
         afterEach(() => {
-            spyValidateMinistryProperties.mockRestore();
             spyGetMinistries.mockRestore();
         });
         it('updates a ministry', async () => {
-            spyGetMinistries.mockImplementation(() => ['ministry']);
+            spyGetMinistries.mockImplementation(() => [mockMinistry]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -320,7 +196,6 @@ describe('ministry', () => {
             );
 
             expect(spyGetMinistries).toHaveBeenCalled();
-            expect(spyValidateMinistryProperties).toHaveBeenCalled();
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
@@ -356,7 +231,7 @@ describe('ministry', () => {
         });
 
         it('throws an error if no changes are provided', async () => {
-            spyGetMinistries.mockImplementation(() => ['ministry']);
+            spyGetMinistries.mockImplementation(() => [mockMinistry]);
 
             await expect(
                 updateMinistry(
@@ -373,7 +248,7 @@ describe('ministry', () => {
         });
 
         it('throws an error if the ministry was not updated on the database', async () => {
-            spyGetMinistries.mockImplementation(() => ['ministry']);
+            spyGetMinistries.mockImplementation(() => [mockMinistry]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -433,52 +308,14 @@ describe('ministry', () => {
     });
 
     describe('_validateMinistryProperties', () => {
-        let spyValidateRecordName: SpyInstance<unknown, unknown[]>;
-        let spyValidateColor: SpyInstance<unknown, unknown[]>;
-
-        beforeEach(() => {
-            spyValidateRecordName = spyOn(
-                validationModule,
-                'validateRecordName'
-            ).mockImplementation(() => true);
-            spyValidateColor = spyOn(
-                validationModule,
-                'validateColor'
-            ).mockImplementation(() => true);
-        });
-
-        afterEach(() => {
-            spyValidateRecordName.mockRestore();
-            spyValidateColor.mockRestore();
-        });
-
         it('accepts valid ministry properties', () => {
             ministryModule._validateMinistryProperties({
                 color: '#F15025',
                 name: 'Choir',
             } as MinistryAddInput);
-        });
 
-        it('throws an error given an invalid color', () => {
-            spyValidateColor.mockImplementation(() => false);
-
-            expect(() => {
-                ministryModule._validateMinistryProperties({
-                    color: 'red',
-                    name: 'Choir',
-                } as MinistryAddInput);
-            }).toThrowError(UserInputError);
-        });
-
-        it('throws an error given an invalid name', () => {
-            spyValidateRecordName.mockImplementation(() => false);
-
-            expect(() => {
-                ministryModule._validateMinistryProperties({
-                    color: '#F15025',
-                    name: 'c',
-                } as MinistryAddInput);
-            }).toThrowError(UserInputError);
+            expect(mockValidateColor).toBeCalled();
+            expect(mockValidateRecordName).toBeCalled();
         });
     });
 });

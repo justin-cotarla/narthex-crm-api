@@ -1,13 +1,14 @@
-import { mocked, spyOn } from 'jest-mock';
+import { mocked } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
+import { mockDBMinistryDelegation } from '../../../__mocks__/database';
+import { mockMinistry } from '../../../__mocks__/schema';
 import {
     DBMinistryDelegation,
     DBUpdateResponse,
 } from '../../../types/database';
 import { Ministry, Person } from '../../../types/generated/graphql';
 import { DatabaseError } from '../../../util/error';
-import * as mappers from '../../../util/mappers';
 import { getMinistries } from '../ministry';
 import {
     addPersonToMinsitry,
@@ -30,15 +31,8 @@ const mockGetPeople = mocked(getPeople).mockImplementation(
 
 jest.mock('../ministry');
 const mockGetMinistries = mocked(getMinistries).mockImplementation(
-    async (): Promise<Ministry[]> => [
-        {
-            id: 1,
-            archived: false,
-        },
-    ]
+    async (): Promise<Ministry[]> => [mockMinistry]
 );
-
-const spyMapMinistryDelegation = spyOn(mappers, 'mapMinistryDelegation');
 
 beforeEach(() => {
     mockQuery.mockClear();
@@ -48,33 +42,12 @@ beforeEach(() => {
 
 describe('ministryDelegation', () => {
     describe('getMinistryDelegations', () => {
-        beforeEach(() => {
-            spyMapMinistryDelegation.mockClear();
-        });
-
         it('gets all ministry delegations', async () => {
             mockQuery.mockImplementation((): DBMinistryDelegation[] => [
-                {
-                    ministry_id: 1,
-                    person_id: 2,
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-                {
-                    ministry_id: 1,
-                    person_id: 3,
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
+                mockDBMinistryDelegation,
             ]);
 
-            const result = await getMinistryDelegations(mockQuery, [], []);
+            await getMinistryDelegations(mockQuery, [], []);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -90,59 +63,14 @@ describe('ministryDelegation', () => {
                 `),
                 values: [],
             });
-            expect(spyMapMinistryDelegation).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    archived: false,
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    delegee: {
-                        id: 2,
-                    },
-                    ministry: {
-                        id: 1,
-                    },
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                },
-                {
-                    archived: false,
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    delegee: {
-                        id: 3,
-                    },
-                    ministry: {
-                        id: 1,
-                    },
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                },
-            ]);
         });
 
         it('gets certain ministries', async () => {
             mockQuery.mockImplementation((): DBMinistryDelegation[] => [
-                {
-                    ministry_id: 1,
-                    person_id: 3,
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
+                mockDBMinistryDelegation,
             ]);
 
-            const result = await getMinistryDelegations(mockQuery, [3], [1]);
+            await getMinistryDelegations(mockQuery, [3], [1]);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -161,30 +89,10 @@ describe('ministryDelegation', () => {
                     `),
                 values: [[1], [3]],
             });
-            expect(spyMapMinistryDelegation).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    archived: false,
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    delegee: {
-                        id: 3,
-                    },
-                    ministry: {
-                        id: 1,
-                    },
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                },
-            ]);
         });
 
-        it('returns an empty array if there are no ministries', async () => {
-            mockQuery.mockImplementation((): DBMinistryDelegation[] => []);
+        it('returns an empty array if query returns nothing', async () => {
+            mockQuery.mockImplementation(() => undefined);
 
             const result = await getMinistryDelegations(mockQuery, [4], [3]);
 

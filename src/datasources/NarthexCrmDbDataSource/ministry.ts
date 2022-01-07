@@ -108,7 +108,7 @@ const addMinistry = async (
     });
 
     if (!rows) {
-        throw new Error('Could not add ministry');
+        throw new DatabaseError('Could not add ministry');
     }
 
     return rows.insertId;

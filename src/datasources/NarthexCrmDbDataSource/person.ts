@@ -141,13 +141,11 @@ const addPerson = async (
 
     personModule._validatePersonProperties(personAddInput);
 
-    if (householdId) {
-        const [household] = await householdModule.getHouseholds(query, {
-            householdIds: [householdId],
-        });
-        if (!household) {
-            throw new UserInputError('Household does not exist');
-        }
+    const [household] = await householdModule.getHouseholds(query, {
+        householdIds: [householdId],
+    });
+    if (!household) {
+        throw new UserInputError('Household does not exist');
     }
 
     const insertClause = buildInsertClause([
@@ -155,9 +153,9 @@ const addPerson = async (
         { key: 'last_name', condition: true },
         { key: 'gender', condition: true },
         { key: 'birth_date', condition: true },
+        { key: 'household_id', condition: true },
         { key: 'created_by', condition: true },
         { key: 'modified_by', condition: true },
-        { key: 'household_id', condition: householdId !== undefined },
         { key: 'primary_phone_number', condition: phoneNumber !== undefined },
         { key: 'email_address', condition: emailAddress !== undefined },
         { key: 'title', condition: title !== undefined },
@@ -177,9 +175,9 @@ const addPerson = async (
             lastName,
             gender.toString(),
             birthDate,
+            householdId,
             clientId,
             clientId,
-            ...(householdId !== undefined ? [householdId] : []),
             ...(phoneNumber !== undefined ? [phoneNumber] : []),
             ...(emailAddress !== undefined ? [emailAddress] : []),
             ...(title !== undefined ? [title] : []),
@@ -187,7 +185,7 @@ const addPerson = async (
     });
 
     if (!rows) {
-        throw new Error('Could not add person');
+        throw new DatabaseError('Could not add person');
     }
 
     return rows.insertId;
@@ -225,17 +223,14 @@ const updatePerson = async (
 
     personModule._validatePersonProperties(personUpdateInput);
 
-    if (householdId) {
+    if (householdId && householdId !== person.household?.id) {
         const [household] = await householdModule.getHouseholds(query, {
             householdIds: [householdId],
         });
         if (!household) {
             throw new UserInputError('Household does not exist');
         }
-
-        if (household.head?.id !== id) {
-            await householdModule.clearHouseholdHead(query, id);
-        }
+        await householdModule.clearHouseholdHead(query, id);
     }
 
     const setClause = buildSetClause([

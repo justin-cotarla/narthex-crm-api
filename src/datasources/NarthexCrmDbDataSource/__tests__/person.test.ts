@@ -1,14 +1,24 @@
 import { UserInputError } from 'apollo-server';
-import { differenceInYears, parse } from 'date-fns';
 import { mocked, SpyInstance, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
+import { mockDBPerson } from '../../../__mocks__/database';
+import { mockHousehold, mockPerson } from '../../../__mocks__/schema';
 import { DBPerson, DBUpdateResponse } from '../../../types/database';
-import { Gender, PersonAddInput } from '../../../types/generated/graphql';
+import {
+    Gender,
+    Person,
+    PersonAddInput,
+    PersonSortKey,
+    SortOrder,
+} from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
-import * as mappersModule from '../../../util/mappers';
-import * as validationModule from '../../../util/validation';
-import { getHouseholds } from '../household';
+import {
+    validateRecordName,
+    validateBirthDate,
+    validateEmail,
+} from '../../../util/validation';
+import { clearHouseholdHead, getHouseholds } from '../household';
 import * as personModule from '../person';
 import {
     addPerson,
@@ -21,157 +31,35 @@ import {
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
 
-const spyMapPerson = spyOn(mappersModule, 'mapPerson');
-
 jest.mock('../household');
 const mockGetHouseholds = mocked(getHouseholds);
+const mockClearHouseholdHead = mocked(clearHouseholdHead);
+
+jest.mock('../../../util/validation');
+const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
+    () => true
+);
+const mockValidateBirthDate = mocked(validateBirthDate).mockImplementation(
+    () => true
+);
+const mockValidateEmail = mocked(validateEmail).mockImplementation(() => true);
 
 beforeEach(() => {
     mockQuery.mockClear();
     mockLogRecordChange.mockClear();
     mockGetHouseholds.mockClear();
+    mockClearHouseholdHead.mockClear();
+    mockValidateRecordName.mockClear();
+    mockValidateBirthDate.mockClear();
+    mockValidateEmail.mockClear();
 });
 
 describe('person', () => {
     describe('getPeople', () => {
-        beforeEach(() => {
-            spyMapPerson.mockClear();
-        });
+        it('gets people with default arguments', async () => {
+            mockQuery.mockImplementation((): DBPerson[] => [mockDBPerson]);
 
-        it('gets people', async () => {
-            mockQuery.mockImplementation((): DBPerson[] => [
-                {
-                    id: 1,
-                    first_name: 'John',
-                    last_name: 'Doe',
-                    gender: Gender.Male,
-                    household_id: 1,
-                    primary_phone_number: '(514) 123-4567',
-                    title: 'Mr',
-                    birth_date: '1995-01-01',
-                    email_address: 'email@test.com',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-                {
-                    id: 2,
-                    first_name: 'Jane',
-                    last_name: 'Poe',
-                    gender: Gender.Female,
-                    household_id: 1,
-                    birth_date: '1995-01-01',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-            ]);
-
-            const result = await getPeople(mockQuery, {
-                archived: true,
-            });
-
-            expect(mockQuery).toBeCalledWith({
-                sql: sqlFormat(`
-                    SELECT
-                        id,
-                        first_name,
-                        last_name,
-                        gender,
-                        primary_phone_number,
-                        email_address,
-                        birth_date,
-                        title,
-                        created_by,
-                        creation_timestamp,
-                        modified_by,
-                        modification_timestamp,
-                        archived,
-                        household_id
-                    FROM
-                        person
-                `),
-                values: [],
-            });
-            expect(spyMapPerson).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    age: differenceInYears(
-                        new Date(),
-                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
-                    ),
-                    archived: false,
-                    birthDate: '1995-01-01',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    emailAddress: 'email@test.com',
-                    firstName: 'John',
-                    gender: 'male',
-                    household: {
-                        id: 1,
-                    },
-                    id: 1,
-                    lastName: 'Doe',
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    phoneNumber: '(514) 123-4567',
-                    title: 'Mr',
-                },
-                {
-                    age: differenceInYears(
-                        new Date(),
-                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
-                    ),
-                    archived: false,
-                    birthDate: '1995-01-01',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    emailAddress: undefined,
-                    firstName: 'Jane',
-                    gender: 'female',
-                    household: {
-                        id: 1,
-                    },
-                    id: 2,
-                    lastName: 'Poe',
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    phoneNumber: undefined,
-                    title: undefined,
-                },
-            ]);
-        });
-
-        it('gets unarchived people', async () => {
-            mockQuery.mockImplementation((): DBPerson[] => [
-                {
-                    id: 2,
-                    first_name: 'Jane',
-                    last_name: 'Poe',
-                    gender: Gender.Female,
-                    household_id: 1,
-                    birth_date: '1995-01-01',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-            ]);
-
-            const result = await getPeople(mockQuery);
+            await getPeople(mockQuery);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -197,55 +85,22 @@ describe('person', () => {
                 `),
                 values: [],
             });
-            expect(spyMapPerson).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    age: differenceInYears(
-                        new Date(),
-                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
-                    ),
-                    archived: false,
-                    birthDate: '1995-01-01',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    emailAddress: undefined,
-                    firstName: 'Jane',
-                    gender: 'female',
-                    household: {
-                        id: 1,
-                    },
-                    id: 2,
-                    lastName: 'Poe',
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    phoneNumber: undefined,
-                    title: undefined,
-                },
-            ]);
         });
 
-        it('gets people by id', async () => {
-            mockQuery.mockImplementation((): DBPerson[] => [
-                {
-                    id: 2,
-                    first_name: 'Jane',
-                    last_name: 'Poe',
-                    gender: Gender.Female,
-                    household_id: 1,
-                    birth_date: '1995-01-01',
-                    created_by: 1,
-                    creation_timestamp: new Date('2021/12/19'),
-                    modified_by: 1,
-                    modification_timestamp: new Date('2021/12/19'),
-                    archived: 0,
-                },
-            ]);
+        it('gets people with all arguments', async () => {
+            mockQuery.mockImplementation((): DBPerson[] => [mockDBPerson]);
 
-            const result = await getPeople(mockQuery, { personIds: [2] });
+            await getPeople(mockQuery, {
+                archived: true,
+                householdIds: [1],
+                sortKey: PersonSortKey.Id,
+                paginationOptions: {
+                    limit: 1,
+                    offset: 1,
+                    sortOrder: SortOrder.Desc,
+                },
+                personIds: [2],
+            });
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -268,43 +123,18 @@ describe('person', () => {
                         person
                     WHERE
                         id in (?)
-                        and archived <> 1
+                        and household_id in (?)
+                    order by
+                        ID DESC
+                    limit
+                        1 offset 1
                 `),
-                values: [[2]],
+                values: [[2], [1]],
             });
-            expect(spyMapPerson).toHaveBeenCalled();
-            expect(result).toStrictEqual([
-                {
-                    age: differenceInYears(
-                        new Date(),
-                        parse('1995-01-01', 'yyyy-MM-dd', new Date())
-                    ),
-                    archived: false,
-                    birthDate: '1995-01-01',
-                    createdBy: {
-                        id: 1,
-                    },
-                    creationTimestamp: 1639872000,
-                    emailAddress: undefined,
-                    firstName: 'Jane',
-                    gender: 'female',
-                    household: {
-                        id: 1,
-                    },
-                    id: 2,
-                    lastName: 'Poe',
-                    modificationTimestamp: 1639872000,
-                    modifiedBy: {
-                        id: 1,
-                    },
-                    phoneNumber: undefined,
-                    title: undefined,
-                },
-            ]);
         });
 
-        it('returns an empty array if there are no people', async () => {
-            mockQuery.mockImplementation((): DBPerson[] => []);
+        it('returns an empty array if query returns nothing', async () => {
+            mockQuery.mockImplementation(() => undefined);
 
             const result = await getPeople(mockQuery, { personIds: [4] });
 
@@ -312,29 +142,12 @@ describe('person', () => {
         });
     });
     describe('addPerson', () => {
-        let spyValidatePersonProperties: SpyInstance<unknown, unknown[]>;
-
-        beforeEach(() => {
-            spyValidatePersonProperties = spyOn(
-                personModule,
-                '_validatePersonProperties'
-            ).mockImplementation(jest.fn());
-        });
-
-        afterEach(() => {
-            spyValidatePersonProperties.mockRestore();
-        });
-
-        it('adds a new person', async () => {
+        it('adds a minimal person', async () => {
             mockQuery.mockImplementation(() => ({
                 insertId: 1,
             }));
 
-            mockGetHouseholds.mockImplementation(async () => [
-                {
-                    id: 1,
-                },
-            ]);
+            mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
 
             const result = await addPerson(
                 mockQuery,
@@ -348,7 +161,6 @@ describe('person', () => {
                 1
             );
 
-            expect(spyValidatePersonProperties).toBeCalled();
             expect(mockGetHouseholds).toBeCalled();
             expect(result).toBe(1);
             expect(mockQuery).toBeCalledWith({
@@ -359,9 +171,9 @@ describe('person', () => {
                             last_name,
                             gender,
                             birth_date,
+                            household_id,
                             created_by,
-                            modified_by,
-                            household_id
+                            modified_by
                         )
                     VALUES
                         (?, ?, ?, ?, ?, ?, ?)
@@ -370,8 +182,70 @@ describe('person', () => {
             });
         });
 
-        it('throws an error if the database fails to insert row', async () => {
-            mockQuery.mockImplementation(() => undefined);
+        it('adds a full person', async () => {
+            mockQuery.mockImplementation(() => ({
+                insertId: 1,
+            }));
+
+            mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
+
+            const result = await addPerson(
+                mockQuery,
+                {
+                    firstName: 'Jane',
+                    lastName: 'Poe',
+                    gender: Gender.Female,
+                    householdId: 1,
+                    birthDate: '1995-01-01',
+                    emailAddress: 'email@test.com',
+                    phoneNumber: '(514) 123-4567',
+                    title: 'Mr',
+                },
+                1
+            );
+
+            expect(mockGetHouseholds).toBeCalled();
+            expect(result).toBe(1);
+            expect(mockQuery).toBeCalledWith({
+                sql: sqlFormat(`
+                    INSERT INTO
+                        person (
+                            first_name,
+                            last_name,
+                            gender,
+                            birth_date,
+                            household_id,
+                            created_by,
+                            modified_by,
+                            primary_phone_number,
+                            email_address,
+                            title
+                        )
+                    VALUES
+                        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `),
+                values: [
+                    'Jane',
+                    'Poe',
+                    'female',
+                    '1995-01-01',
+                    1,
+                    1,
+                    1,
+                    '(514) 123-4567',
+                    'email@test.com',
+                    'Mr',
+                ],
+            });
+        });
+
+        it('throws an error if the household does not exist', async () => {
+            mockQuery.mockImplementation(() => ({
+                insertId: 1,
+            }));
+
+            mockGetHouseholds.mockImplementation(async () => []);
+
             await expect(
                 addPerson(
                     mockQuery,
@@ -384,31 +258,48 @@ describe('person', () => {
                     },
                     1
                 )
-            ).rejects.toThrowError(Error);
+            ).rejects.toThrowError(UserInputError);
 
-            expect(spyValidatePersonProperties).toBeCalled();
+            expect(mockQuery).toBeCalledTimes(0);
+        });
+
+        it('throws an error if the database fails to insert row', async () => {
+            mockQuery.mockImplementation(() => undefined);
+            mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
+
+            await expect(
+                addPerson(
+                    mockQuery,
+                    {
+                        firstName: 'Jane',
+                        lastName: 'Poe',
+                        gender: Gender.Female,
+                        householdId: 1,
+                        birthDate: '19-01-01',
+                    },
+                    1
+                )
+            ).rejects.toThrowError(DatabaseError);
+
             expect(mockQuery).toBeCalled();
         });
     });
 
     describe('updatePerson', () => {
-        let spyValidatePersonProperties: SpyInstance<unknown, unknown[]>;
         let spyGetPeople: SpyInstance<unknown, unknown[]>;
 
         beforeEach(() => {
-            spyValidatePersonProperties = spyOn(
-                personModule,
-                '_validatePersonProperties'
-            ).mockImplementation(jest.fn());
             spyGetPeople = spyOn(personModule, 'getPeople');
         });
 
         afterEach(() => {
-            spyValidatePersonProperties.mockRestore();
             spyGetPeople.mockRestore();
         });
         it('updates a person', async () => {
-            spyGetPeople.mockImplementation(() => ['person']);
+            spyGetPeople.mockImplementation((): Person[] => [
+                { ...mockPerson, household: { id: 1 } },
+            ]);
+            mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -421,14 +312,19 @@ describe('person', () => {
                 mockLogRecordChange,
                 {
                     id: 1,
-                    firstName: 'Jane',
+                    birthDate: '1995-01-01',
+                    emailAddress: 'email@test.com',
+                    firstName: 'John',
+                    gender: Gender.Male,
+                    householdId: 2,
                     lastName: 'Doe',
+                    phoneNumber: '(514) 123-4567',
+                    title: 'Mr',
                 },
                 2
             );
 
             expect(spyGetPeople).toHaveBeenCalled();
-            expect(spyValidatePersonProperties).toHaveBeenCalled();
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
@@ -437,16 +333,118 @@ describe('person', () => {
                     SET
                         modified_by = ?,
                         first_name = ?,
-                        last_name = ?
+                        last_name = ?,
+                        household_id = ?,
+                        gender = ?,
+                        birth_date = ?,
+                        primary_phone_number = ?,
+                        email_address = ?,
+                        title = ?
                     WHERE
                         ID = ?;
                 `),
-                values: [2, 'Jane', 'Doe', 1],
+                values: [
+                    2,
+                    'John',
+                    'Doe',
+                    2,
+                    'male',
+                    '1995-01-01',
+                    '(514) 123-4567',
+                    'email@test.com',
+                    'Mr',
+                    1,
+                ],
             });
+            expect(clearHouseholdHead).toHaveBeenCalledTimes(1);
+            expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
+        });
+
+        it('does not clear the household if a new household is not provided', async () => {
+            spyGetPeople.mockImplementation((): Person[] => [mockPerson]);
+            mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 1,
+                    changedRows: 1,
+                })
+            );
+
+            await updatePerson(
+                mockQuery,
+                mockLogRecordChange,
+                {
+                    id: 1,
+                    firstName: 'John',
+                },
+                2
+            );
+
+            expect(spyGetPeople).toHaveBeenCalled();
+
+            expect(mockQuery).toHaveBeenCalled();
+
+            expect(clearHouseholdHead).toHaveBeenCalledTimes(0);
 
             expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
         });
 
+        it('does not clear the household head if the household is not changed', async () => {
+            spyGetPeople.mockImplementation((): Person[] => [
+                { ...mockPerson, household: { id: 1 } },
+            ]);
+            mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
+            mockQuery.mockImplementation(
+                (): DBUpdateResponse => ({
+                    affectedRows: 1,
+                    changedRows: 1,
+                })
+            );
+
+            await updatePerson(
+                mockQuery,
+                mockLogRecordChange,
+                {
+                    id: 1,
+                    householdId: 1,
+                },
+                2
+            );
+
+            expect(spyGetPeople).toHaveBeenCalled();
+
+            expect(mockQuery).toHaveBeenCalled();
+
+            expect(clearHouseholdHead).toHaveBeenCalledTimes(0);
+
+            expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
+        });
+
+        it('throws an error if the household does not exist', async () => {
+            spyGetPeople.mockImplementation((): Person[] => [
+                { ...mockPerson, household: { id: 1 } },
+            ]);
+            mockGetHouseholds.mockImplementation(async () => []);
+            mockQuery.mockImplementation(() => ({
+                insertId: 1,
+            }));
+
+            mockGetHouseholds.mockImplementation(async () => []);
+
+            await expect(
+                updatePerson(
+                    mockQuery,
+                    mockLogRecordChange,
+                    {
+                        id: 1,
+                        householdId: 2,
+                    },
+                    1
+                )
+            ).rejects.toThrowError(UserInputError);
+
+            expect(mockQuery).toBeCalledTimes(0);
+        });
         it('throws an error if the person does not exists', async () => {
             spyGetPeople.mockImplementationOnce((): DBPerson[] => []);
 
@@ -466,7 +464,7 @@ describe('person', () => {
         });
 
         it('throws an error if no changes are provided', async () => {
-            spyGetPeople.mockImplementationOnce(() => ['person']);
+            spyGetPeople.mockImplementationOnce(() => [mockPerson]);
 
             await expect(
                 updatePerson(
@@ -483,7 +481,7 @@ describe('person', () => {
         });
 
         it('throws an error if the person was not updated on the database', async () => {
-            spyGetPeople.mockImplementation(() => ['person']);
+            spyGetPeople.mockImplementation(() => [mockPerson]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -525,6 +523,7 @@ describe('person', () => {
                 `),
                 values: [1],
             });
+            expect(clearHouseholdHead).toHaveBeenCalled();
             expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
         });
 
@@ -543,91 +542,17 @@ describe('person', () => {
     });
 
     describe('_validatePersonProperties', () => {
-        let spyValidateRecordName: SpyInstance<unknown, unknown[]>;
-        let spyValidateBirthDate: SpyInstance<unknown, unknown[]>;
-        let spyValidateEmail: SpyInstance<unknown, unknown[]>;
-
-        beforeEach(() => {
-            spyValidateRecordName = spyOn(
-                validationModule,
-                'validateRecordName'
-            ).mockImplementation(() => true);
-            spyValidateBirthDate = spyOn(
-                validationModule,
-                'validateBirthDate'
-            ).mockImplementation(() => true);
-            spyValidateEmail = spyOn(
-                validationModule,
-                'validateEmail'
-            ).mockImplementation(() => true);
-        });
-
-        afterEach(() => {
-            spyValidateRecordName.mockRestore();
-            spyValidateBirthDate.mockRestore();
-            spyValidateEmail.mockRestore();
-        });
-
-        it('accepts valid person properties', () => {
+        it('validates all person properties', () => {
             _validatePersonProperties({
                 birthDate: '1995-01-01',
                 emailAddress: 'email@example.com',
                 firstName: 'Jane',
                 lastName: 'Poe',
             } as PersonAddInput);
-        });
 
-        it('throws an error given an invalid first name', () => {
-            spyValidateRecordName.mockImplementation(() => false);
-
-            expect(() => {
-                _validatePersonProperties({
-                    birthDate: '1995-01-01',
-                    emailAddress: 'email@example.com',
-                    firstName: 'J',
-                    lastName: 'Poe',
-                } as PersonAddInput);
-            }).toThrowError(UserInputError);
-        });
-
-        it('throws an error given an invalid last name', () => {
-            spyValidateRecordName.mockImplementationOnce(() => true);
-            spyValidateRecordName.mockImplementationOnce(() => false);
-
-            expect(() => {
-                _validatePersonProperties({
-                    birthDate: '1995-01-01',
-                    emailAddress: 'email@example.com',
-                    firstName: 'Jane',
-                    lastName: 'P',
-                } as PersonAddInput);
-            }).toThrowError(UserInputError);
-        });
-
-        it('throws an error given an invalid email address', () => {
-            spyValidateEmail.mockImplementation(() => false);
-
-            expect(() => {
-                _validatePersonProperties({
-                    birthDate: '1995-01-01',
-                    emailAddress: 's',
-                    firstName: 'Jane',
-                    lastName: 'Poe',
-                } as PersonAddInput);
-            }).toThrowError(UserInputError);
-        });
-
-        it('throws an error given an invalid date of birth', () => {
-            spyValidateBirthDate.mockImplementation(() => false);
-
-            expect(() => {
-                _validatePersonProperties({
-                    birthDate: '95-01-01',
-                    emailAddress: 'email@example.com',
-                    firstName: 'Jane',
-                    lastName: 'Poe',
-                } as PersonAddInput);
-            }).toThrowError(UserInputError);
+            expect(mockValidateRecordName).toHaveBeenCalled();
+            expect(mockValidateBirthDate).toHaveBeenCalled();
+            expect(mockValidateEmail).toHaveBeenCalled();
         });
     });
 });
