@@ -4,7 +4,11 @@ import { format as sqlFormat } from 'sql-formatter';
 
 import { mockDBPerson } from '../../../__mocks__/database';
 import { mockHousehold, mockPerson } from '../../../__mocks__/schema';
-import { DBPerson, DBUpdateResponse } from '../../../types/database';
+import {
+    DBPerson,
+    DBUpdateResponse,
+    RecordTable,
+} from '../../../types/database';
 import {
     Gender,
     Person,
@@ -357,7 +361,11 @@ describe('person', () => {
                 ],
             });
             expect(clearHouseholdHead).toHaveBeenCalledTimes(1);
-            expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.PERSON,
+                1,
+                2
+            );
         });
 
         it('does not clear the household if a new household is not provided', async () => {
@@ -386,7 +394,11 @@ describe('person', () => {
 
             expect(clearHouseholdHead).toHaveBeenCalledTimes(0);
 
-            expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.PERSON,
+                1,
+                2
+            );
         });
 
         it('does not clear the household head if the household is not changed', async () => {
@@ -417,7 +429,11 @@ describe('person', () => {
 
             expect(clearHouseholdHead).toHaveBeenCalledTimes(0);
 
-            expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.PERSON,
+                1,
+                2
+            );
         });
 
         it('throws an error if the household does not exist', async () => {
@@ -524,7 +540,11 @@ describe('person', () => {
                 values: [1],
             });
             expect(clearHouseholdHead).toHaveBeenCalled();
-            expect(mockLogRecordChange).toHaveBeenCalledWith('person', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.PERSON,
+                1,
+                2
+            );
         });
 
         it('throws an error if the person was not archived on the database', async () => {

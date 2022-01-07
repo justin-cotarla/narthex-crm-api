@@ -4,7 +4,11 @@ import { format as sqlFormat } from 'sql-formatter';
 
 import { mockDBHousehold } from '../../../__mocks__/database';
 import { mockHousehold, mockPerson } from '../../../__mocks__/schema';
-import { DBHousehold, DBUpdateResponse } from '../../../types/database';
+import {
+    DBHousehold,
+    DBUpdateResponse,
+    RecordTable,
+} from '../../../types/database';
 import {
     HouseholdAddInput,
     HouseholdSortKey,
@@ -334,7 +338,11 @@ describe('household', () => {
                 ],
             });
 
-            expect(mockLogRecordChange).toHaveBeenCalledWith('household', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.HOUSEHOLD,
+                1,
+                2
+            );
         });
 
         it('throws an error if the provided head does not exist', async () => {
@@ -470,7 +478,11 @@ describe('household', () => {
                 values: [1],
             });
             expect(mockGetPeople).toHaveBeenCalled();
-            expect(mockLogRecordChange).toHaveBeenCalledWith('household', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.HOUSEHOLD,
+                1,
+                2
+            );
         });
 
         it('throws an error if the household has people', async () => {

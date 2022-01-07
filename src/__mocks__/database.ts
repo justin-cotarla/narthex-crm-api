@@ -1,5 +1,6 @@
 import {
     DBClient,
+    DBDonation,
     DBHousehold,
     DBMinistry,
     DBMinistryDelegation,
@@ -71,10 +72,25 @@ const mockDBMinistryDelegation: DBMinistryDelegation = {
     archived: 0,
 };
 
+const mockDBDonation: DBDonation = {
+    id: 1,
+    amount: '123',
+    date: '2022-01-07',
+    household_id: 1,
+    donation_campaign_id: 1,
+    notes: 'Stewardship 2022',
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
 export {
     mockDBHousehold,
     mockDBPerson,
     mockDBMinistry,
     mockDBClient,
     mockDBMinistryDelegation,
+    mockDBDonation,
 };

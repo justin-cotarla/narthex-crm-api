@@ -4,7 +4,11 @@ import { format as sqlFormat } from 'sql-formatter';
 
 import { mockDBMinistry } from '../../../__mocks__/database';
 import { mockMinistry } from '../../../__mocks__/schema';
-import { DBMinistry, DBUpdateResponse } from '../../../types/database';
+import {
+    DBMinistry,
+    DBUpdateResponse,
+    RecordTable,
+} from '../../../types/database';
 import { MinistryAddInput } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
 import { validateRecordName, validateColor } from '../../../util/validation';
@@ -210,7 +214,11 @@ describe('ministry', () => {
                 values: ['Council', 0, 1],
             });
 
-            expect(mockLogRecordChange).toHaveBeenCalledWith('ministry', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.MINISTRY,
+                1,
+                2
+            );
         });
 
         it('throws an error if no the ministry does not exists', async () => {
@@ -290,7 +298,11 @@ describe('ministry', () => {
                 `),
                 values: [1],
             });
-            expect(mockLogRecordChange).toHaveBeenCalledWith('ministry', 1, 2);
+            expect(mockLogRecordChange).toHaveBeenCalledWith(
+                RecordTable.MINISTRY,
+                1,
+                2
+            );
         });
 
         it('throws an error if the ministry was not archived on the database', async () => {

@@ -1,4 +1,5 @@
 import {
+    Donation,
     Gender,
     Household,
     Ministry,
@@ -72,4 +73,23 @@ const mockMinistry: Ministry = {
     name: 'Choir',
 };
 
-export { mockHousehold, mockPerson, mockMinistry };
+const mockDonation: Donation = {
+    archived: false,
+    createdBy: {
+        id: 1,
+    },
+    creationTimestamp: 1639872000,
+    id: 1,
+    modificationTimestamp: 1639872000,
+    modifiedBy: {
+        id: 1,
+    },
+    amount: '123.00',
+    date: '2022-01-07',
+    household: {
+        id: 1,
+    },
+    notes: 'Stewardship 2022',
+};
+
+export { mockHousehold, mockPerson, mockMinistry, mockDonation };
