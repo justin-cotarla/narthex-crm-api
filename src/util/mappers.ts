@@ -4,6 +4,7 @@ import { differenceInYears, getUnixTime, parse } from 'date-fns';
 import {
     DBClient,
     DBDonation,
+    DBDonationCampaign,
     DBHousehold,
     DBMinistry,
     DBMinistryDelegation,
@@ -18,6 +19,7 @@ import {
     MinistryDelegation,
     Person,
     Record,
+    DonationCampaign,
 } from '../types/generated/graphql';
 
 const mapRecord = (dbRecord: DBRecord): Record => ({
@@ -111,10 +113,28 @@ const mapDonation = (dbDonation: DBDonation): Donation => ({
     household: {
         id: dbDonation.household_id,
     },
+    ...(dbDonation.donation_campaign_id
+        ? {
+              donationCampaign: {
+                  id: dbDonation.donation_campaign_id,
+              },
+          }
+        : {}),
     amount: currency(dbDonation.amount).toString(),
     date: dbDonation.date,
     notes: dbDonation.notes,
     ...mapRecord(dbDonation),
+});
+
+const mapDonationCampaign = (
+    dbDonationCampaign: DBDonationCampaign
+): DonationCampaign => ({
+    id: dbDonationCampaign.id,
+    name: dbDonationCampaign.name,
+    startDate: dbDonationCampaign.start_date,
+    endDate: dbDonationCampaign.end_date,
+    notes: dbDonationCampaign.notes,
+    ...mapRecord(dbDonationCampaign),
 });
 
 export {
@@ -124,4 +144,5 @@ export {
     mapPerson,
     mapMinistryDelegation,
     mapDonation,
+    mapDonationCampaign,
 };

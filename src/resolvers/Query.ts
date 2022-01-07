@@ -1,4 +1,5 @@
 import {
+    DonationCampaignSortKey,
     DonationSortKey,
     HouseholdSortKey,
     PaginationOptions,
@@ -200,6 +201,49 @@ const Query: QueryResolvers = {
         });
 
         return donation;
+    },
+
+    donationCampaigns: async (
+        _,
+        {
+            archived,
+            sortKey = DonationCampaignSortKey.StartDate,
+            paginationOptions = defaultPaginationOptions,
+            afterDate,
+            beforeDate,
+        },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const donationCampaigns =
+            await narthexCrmDbDataSource.getDonationCampaigns({
+                sortKey: sortKey!,
+                paginationOptions: paginationOptions!,
+                archived,
+                beforeDate,
+                afterDate,
+            });
+        return donationCampaigns;
+    },
+
+    donationCampaignById: async (
+        _,
+        { donationCampaignId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const [donationCampaign] =
+            await narthexCrmDbDataSource.getDonationCampaigns({
+                donationCampaignIds: [donationCampaignId],
+            });
+
+        return donationCampaign;
     },
 };
 

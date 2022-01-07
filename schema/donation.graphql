@@ -1,6 +1,7 @@
 type Donation implements Record {
     id: Int!
     household: Household
+    donationCampaign: DonationCampaign
     amount: String
     date: String
     notes: String
@@ -16,6 +17,7 @@ input DonationAddInput {
     amount: String!
     date: String!
     notes: String
+    donationCampaignId: Int
 }
 
 input DonationUpdateInput {
@@ -23,6 +25,7 @@ input DonationUpdateInput {
     amount: String
     date: String
     notes: String
+    donationCampaignId: Int
 }
 
 enum DonationSortKey {

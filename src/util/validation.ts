@@ -1,3 +1,5 @@
+import { isAfter, isBefore, parse } from 'date-fns';
+
 import { AddressInput } from '../types/generated/graphql';
 
 const validateEmail = (email: string): boolean => {
@@ -19,6 +21,20 @@ const validateDate = (dateString: string): boolean => {
     return dateRegex.test(dateString);
 };
 
+const validateDateRange = (startDate: string, endDate: string): boolean => {
+    if (!validateDate(startDate)) {
+        return false;
+    }
+    if (!validateDate(endDate)) {
+        return false;
+    }
+
+    return isAfter(
+        parse(endDate, 'yyyy-MM-dd', new Date()),
+        parse(startDate, 'yyyy-MM-dd', new Date())
+    );
+};
+
 const validateAddress = (address: AddressInput): boolean => {
     // TODO: Implement validation function
     return true;
@@ -29,6 +45,21 @@ const validateCurrency = (value: string): boolean => {
     return currencyRegex.test(value);
 };
 
+const validateDateInRange = (
+    testDate: string,
+    startDate: string,
+    endDate: string
+) => {
+    const parsedTestDate = parse(testDate, 'yyyy-MM-dd', new Date());
+    const parsedStartDate = parse(startDate, 'yyyy-MM-dd', new Date());
+    const parsedEndDate = parse(endDate, 'yyyy-MM-dd', new Date());
+
+    return !(
+        isBefore(parsedTestDate, parsedStartDate) ||
+        isAfter(parsedTestDate, parsedEndDate)
+    );
+};
+
 export {
     validateEmail,
     validateColor,
@@ -36,4 +67,6 @@ export {
     validateDate,
     validateAddress,
     validateCurrency,
+    validateDateRange,
+    validateDateInRange,
 };

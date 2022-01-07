@@ -27,6 +27,22 @@ const Donation: DonationResolvers = {
 
         return householdResult ?? null;
     },
+
+    donationCampaign: async (
+        { donationCampaign },
+        _,
+        { dataLoaders: { donationCampaigns } }
+    ) => {
+        if (!donationCampaign?.id) {
+            return null;
+        }
+
+        const [donationCampaignResult] = await donationCampaigns.load(
+            donationCampaign.id
+        );
+
+        return donationCampaignResult ?? null;
+    },
 };
 
 export { Donation };

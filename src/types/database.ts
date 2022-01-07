@@ -16,6 +16,7 @@ enum RecordTable {
     PERSON = 'person',
     HOUSEHOLD = 'household',
     DONATION = 'donation',
+    DONATION_CAMPAIGN = 'donation_campaign',
 }
 
 interface DBRecord {
@@ -80,6 +81,14 @@ interface DBDonation extends DBRecord {
     notes?: string;
 }
 
+interface DBDonationCampaign extends DBRecord {
+    id: number;
+    name: string;
+    start_date: string;
+    end_date: string;
+    notes?: string;
+}
+
 interface DBInsertResponse {
     insertId: number;
 }
@@ -102,4 +111,5 @@ export type {
     DBPerson,
     DBMinistryDelegation,
     DBDonation,
+    DBDonationCampaign,
 };

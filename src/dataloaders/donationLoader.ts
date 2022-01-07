@@ -4,6 +4,24 @@ import * as R from 'ramda';
 import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
 import { Donation } from '../types/generated/graphql';
 
+const getDonationLoader = (narthexCrmDataSource: NarthexCrmDbDataSource) => {
+    const batchDonationById = async (
+        donationIds: readonly number[]
+    ): Promise<Donation[][]> => {
+        const donations = await narthexCrmDataSource.getDonations({
+            donationIds: donationIds as number[],
+        });
+
+        const donationMap = R.groupBy(({ id }) => id.toString(), donations);
+
+        return donationIds.map(
+            (donationId) => donationMap[donationId] ?? undefined
+        );
+    };
+
+    return new DataLoader(batchDonationById);
+};
+
 const getDonationByHouseholdLoader = (
     narthexCrmDataSource: NarthexCrmDbDataSource
 ) => {
@@ -24,4 +42,4 @@ const getDonationByHouseholdLoader = (
     return new DataLoader(batchDonationByHouseholdId);
 };
 
-export { getDonationByHouseholdLoader };
+export { getDonationByHouseholdLoader, getDonationLoader };

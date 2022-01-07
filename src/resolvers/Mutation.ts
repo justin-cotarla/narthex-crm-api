@@ -301,6 +301,65 @@ const Mutation: MutationResolvers = {
             id: donationId,
         };
     },
+    addDonationCampaign: async (
+        _,
+        { donationCampaignAddInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const donationCampaignId =
+            await narthexCrmDbDataSource.addDonationCampaign(
+                donationCampaignAddInput,
+                clientToken!.id
+            );
+
+        const [donationCampaign] =
+            await narthexCrmDbDataSource.getDonationCampaigns({
+                donationCampaignIds: [donationCampaignId],
+            });
+        return donationCampaign;
+    },
+    updateDonationCampaign: async (
+        _,
+        { donationCampaignUpdateInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.updateDonationCampaign(
+            donationCampaignUpdateInput,
+            clientToken!.id
+        );
+        const [donationCampaign] =
+            await narthexCrmDbDataSource.getDonationCampaigns({
+                donationCampaignIds: [donationCampaignUpdateInput.id],
+            });
+
+        return donationCampaign;
+    },
+    deleteDonationCampaign: async (
+        _,
+        { donationCampaignId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.archiveDonationCampaign(
+            donationCampaignId,
+            clientToken!.id
+        );
+
+        return {
+            id: donationCampaignId,
+        };
+    },
 };
 
 export { Mutation };

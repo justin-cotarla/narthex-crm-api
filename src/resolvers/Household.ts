@@ -35,9 +35,9 @@ const Household: HouseholdResolvers = {
     },
 
     donations: async ({ id }, _, { dataLoaders: { donationsByHousehold } }) => {
-        const personResult = await donationsByHousehold.load(id);
+        const donationResult = await donationsByHousehold.load(id);
 
-        return personResult ?? [];
+        return donationResult ?? [];
     },
 };
 

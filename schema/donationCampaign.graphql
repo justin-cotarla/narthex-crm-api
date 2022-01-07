@@ -1,0 +1,36 @@
+type DonationCampaign implements Record {
+    id: Int!
+    name: String
+    startDate: String
+    endDate: String
+    notes: String
+    donations: [Donation!]
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+input DonationCampaignAddInput {
+    name: String!
+    dateRange: DateRange!
+    notes: String
+}
+
+input DonationCampaignUpdateInput {
+    id: Int!
+    name: String
+    dateRange: DateRange
+    notes: String
+}
+
+input DateRange {
+    startDate: String!
+    endDate: String!
+}
+
+enum DonationCampaignSortKey {
+    ID
+    START_DATE
+}

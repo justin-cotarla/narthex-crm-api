@@ -1,7 +1,11 @@
 import { NarthexCrmDbDataSource } from '../datasources/NarthexCrmDbDataSource';
 
 import { getClientLoader } from './clientLoader';
-import { getDonationByHouseholdLoader } from './donationLoader';
+import { getDonationCampaignLoader } from './donationCampaignLoader';
+import {
+    getDonationByHouseholdLoader,
+    getDonationLoader,
+} from './donationLoader';
 import { getHouseholdLoader } from './householdLoader';
 import {
     getMinistryDelegationsByMinistryLoader,
@@ -20,7 +24,9 @@ const createDataLoaders = (narthexCrmDataSource: NarthexCrmDbDataSource) => ({
         getMinistryDelegationsByMinistryLoader(narthexCrmDataSource),
     households: getHouseholdLoader(narthexCrmDataSource),
     peopleByHousehold: getPeopleByHouseholdLoader(narthexCrmDataSource),
+    donations: getDonationLoader(narthexCrmDataSource),
     donationsByHousehold: getDonationByHouseholdLoader(narthexCrmDataSource),
+    donationCampaigns: getDonationCampaignLoader(narthexCrmDataSource),
 });
 
 export { createDataLoaders };

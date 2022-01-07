@@ -22,10 +22,15 @@ import {
     buildInsertClause,
     buildPaginationClause,
 } from '../../util/query';
-import { validateCurrency, validateDate } from '../../util/validation';
+import {
+    validateCurrency,
+    validateDate,
+    validateDateInRange,
+} from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
 import * as donationModule from './donation';
+import * as donationCampaignModule from './donationCampaign';
 import * as householdModule from './household';
 
 import { NarthexCrmDbDataSource } from '.';
@@ -113,7 +118,8 @@ const addDonation = async (
     donationAddInput: DonationAddInput,
     clientId: number
 ): Promise<number> => {
-    const { amount, date, householdId, notes } = donationAddInput;
+    const { amount, date, householdId, notes, donationCampaignId } =
+        donationAddInput;
 
     donationModule._validateDonationProperties(donationAddInput);
 
@@ -131,6 +137,10 @@ const addDonation = async (
         { key: 'created_by', condition: true },
         { key: 'modified_by', condition: true },
         { key: 'notes', condition: notes !== undefined },
+        {
+            key: 'donation_campaign_id',
+            condition: donationCampaignId !== undefined,
+        },
     ]);
 
     const sql = sqlFormat(`
@@ -149,6 +159,7 @@ const addDonation = async (
             clientId,
             clientId,
             ...(notes !== undefined ? [notes] : []),
+            ...(donationCampaignId !== undefined ? [donationCampaignId] : []),
         ],
     });
 
@@ -165,7 +176,7 @@ const updateDonation = async (
     donationUpdateInput: DonationUpdateInput,
     clientId: number
 ): Promise<void> => {
-    const { id, amount, date, notes } = donationUpdateInput;
+    const { id, amount, date, notes, donationCampaignId } = donationUpdateInput;
 
     const [donation] = await donationModule.getDonations(query, {
         donationIds: [id],
@@ -186,6 +197,10 @@ const updateDonation = async (
         { key: 'amount', condition: amount !== undefined },
         { key: 'date', condition: date !== undefined },
         { key: 'notes', condition: notes !== undefined },
+        {
+            key: 'donation_campaign_id',
+            condition: donationCampaignId !== undefined,
+        },
     ]);
 
     const sql = sqlFormat(`
@@ -200,6 +215,7 @@ const updateDonation = async (
         ...(amount !== undefined ? [amount] : []),
         ...(date !== undefined ? [date] : []),
         ...(notes !== undefined ? [notes] : []),
+        ...(donationCampaignId !== undefined ? [donationCampaignId] : []),
         id,
     ];
 
@@ -221,8 +237,6 @@ const archiveDonation = async (
     donationId: number,
     clientId: number
 ): Promise<void> => {
-    await householdModule.clearHouseholdHead(query, donationId);
-
     const sql = sqlFormat(`
         UPDATE donation
         SET

@@ -12,6 +12,12 @@ import {
     archiveDonation,
 } from './donation';
 import {
+    getDonationCampaigns,
+    addDonationCampaign,
+    updateDonationCampaign,
+    archiveDonationCampaign,
+} from './donationCampaign';
+import {
     getHouseholds,
     addHousehold,
     updateHousehold,
@@ -191,6 +197,32 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         ...args: Tail<Tail<Parameters<typeof archiveDonation>>>
     ) =>
         archiveDonation(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    getDonationCampaigns = (
+        ...args: Tail<Parameters<typeof getDonationCampaigns>>
+    ) => getDonationCampaigns(this.cacheQuery.bind(this), ...args);
+
+    addDonationCampaign = (
+        ...args: Tail<Parameters<typeof addDonationCampaign>>
+    ) => addDonationCampaign(this.query.bind(this), ...args);
+
+    updateDonationCampaign = (
+        ...args: Tail<Tail<Parameters<typeof updateDonationCampaign>>>
+    ) =>
+        updateDonationCampaign(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    archiveDonationCampaign = (
+        ...args: Tail<Tail<Parameters<typeof archiveDonationCampaign>>>
+    ) =>
+        archiveDonationCampaign(
             this.query.bind(this),
             this.logRecordChange.bind(this),
             ...args

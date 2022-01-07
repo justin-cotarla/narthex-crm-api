@@ -15,6 +15,9 @@ type Query {
 
     donations(paginationOptions: PaginationOptions, sortKey: DonationSortKey, archived: Boolean): [Donation!]!
     donationById(donationId: Int!): Donation
+
+    donationCampaigns(paginationOptions: PaginationOptions, sortKey: DonationCampaignSortKey, beforeDate: String, afterDate: String, archived: Boolean): [DonationCampaign!]!
+    donationCampaignById(donationCampaignId: Int!): DonationCampaign
 }
 
 type Mutation {
@@ -38,6 +41,10 @@ type Mutation {
     addDonation(donationAddInput: DonationAddInput!): Donation!
     updateDonation(donationUpdateInput: DonationUpdateInput!): Donation!
     deleteDonation(donationId: Int!): DeleteOutput!
+
+    addDonationCampaign(donationCampaignAddInput: DonationCampaignAddInput!): DonationCampaign!
+    updateDonationCampaign(donationCampaignUpdateInput: DonationCampaignUpdateInput!): DonationCampaign!
+    deleteDonationCampaign(donationCampaignId: Int!): DeleteOutput!
 }
 
 type DeleteOutput {
