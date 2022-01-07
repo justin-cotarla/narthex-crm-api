@@ -1,7 +1,9 @@
+import currency from 'currency.js';
 import { differenceInYears, getUnixTime, parse } from 'date-fns';
 
 import {
     DBClient,
+    DBDonation,
     DBHousehold,
     DBMinistry,
     DBMinistryDelegation,
@@ -10,6 +12,7 @@ import {
 } from '../types/database';
 import {
     Client,
+    Donation,
     Household,
     Ministry,
     MinistryDelegation,
@@ -103,10 +106,22 @@ const mapMinistryDelegation = (
     ...mapRecord({ ...dbMinistryDelegation, archived: 0 }),
 });
 
+const mapDonation = (dbDonation: DBDonation): Donation => ({
+    id: dbDonation.id,
+    household: {
+        id: dbDonation.household_id,
+    },
+    amount: currency(dbDonation.amount).toString(),
+    date: dbDonation.date,
+    notes: dbDonation.notes,
+    ...mapRecord(dbDonation),
+});
+
 export {
     mapClient,
     mapMinistry,
     mapHousehold,
     mapPerson,
     mapMinistryDelegation,
+    mapDonation,
 };

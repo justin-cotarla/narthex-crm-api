@@ -38,6 +38,7 @@
     "@graphql-tools/load": "^7.4.1",
     "apollo-server": "^3.5.0",
     "argon2": "^0.28.3",
+    "currency.js": "^2.0.4",
     "dataloader": "^2.0.0",
     "date-fns": "^2.27.0",
     "dotenv": "^10.0.0",

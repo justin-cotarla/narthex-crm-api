@@ -15,7 +15,7 @@ import {
 import { DatabaseError, NotFoundError } from '../../../util/error';
 import {
     validateRecordName,
-    validateBirthDate,
+    validateDate,
     validateEmail,
 } from '../../../util/validation';
 import { clearHouseholdHead, getHouseholds } from '../household';
@@ -39,7 +39,7 @@ jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
     () => true
 );
-const mockValidateBirthDate = mocked(validateBirthDate).mockImplementation(
+const mockValidateBirthDate = mocked(validateDate).mockImplementation(
     () => true
 );
 const mockValidateEmail = mocked(validateEmail).mockImplementation(() => true);

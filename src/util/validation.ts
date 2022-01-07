@@ -14,9 +14,9 @@ const validateRecordName = (recordName: string): boolean => {
     return recordName.length >= 3;
 };
 
-const validateBirthDate = (birthDateString: string): boolean => {
-    const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    return birthDateRegex.test(birthDateString);
+const validateDate = (dateString: string): boolean => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    return dateRegex.test(dateString);
 };
 
 const validateAddress = (address: AddressInput): boolean => {
@@ -24,10 +24,16 @@ const validateAddress = (address: AddressInput): boolean => {
     return true;
 };
 
+const validateCurrency = (value: string): boolean => {
+    const currencyRegex = /^\d+\.\d{2}$/;
+    return currencyRegex.test(value);
+};
+
 export {
     validateEmail,
     validateColor,
     validateRecordName,
-    validateBirthDate,
+    validateDate,
     validateAddress,
+    validateCurrency,
 };

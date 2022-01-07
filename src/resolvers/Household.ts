@@ -33,6 +33,12 @@ const Household: HouseholdResolvers = {
 
         return personResult ?? [];
     },
+
+    donations: async ({ id }, _, { dataLoaders: { donationsByHousehold } }) => {
+        const personResult = await donationsByHousehold.load(id);
+
+        return personResult ?? [];
+    },
 };
 
 export { Household };

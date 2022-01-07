@@ -23,7 +23,7 @@ import {
     buildPaginationClause,
 } from '../../util/query';
 import {
-    validateBirthDate,
+    validateDate,
     validateEmail,
     validateRecordName,
 } from '../../util/validation';
@@ -45,7 +45,7 @@ export const _validatePersonProperties = (
     if (lastName && !validateRecordName(lastName)) {
         throw new UserInputError('Invalid last name');
     }
-    if (birthDate && !validateBirthDate(birthDate)) {
+    if (birthDate && !validateDate(birthDate)) {
         throw new UserInputError(
             "Invalid birthdate, expected format: 'YYYY-MM-DD'"
         );

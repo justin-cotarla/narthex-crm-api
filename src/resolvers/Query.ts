@@ -1,4 +1,5 @@
 import {
+    DonationSortKey,
     HouseholdSortKey,
     PaginationOptions,
     PersonSortKey,
@@ -162,6 +163,43 @@ const Query: QueryResolvers = {
         });
 
         return household;
+    },
+
+    donations: async (
+        _,
+        {
+            archived,
+            sortKey = DonationSortKey.Date,
+            paginationOptions = defaultPaginationOptions,
+        },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const donations = await narthexCrmDbDataSource.getDonations({
+            sortKey: sortKey!,
+            paginationOptions: paginationOptions!,
+            archived,
+        });
+        return donations;
+    },
+
+    donationById: async (
+        _,
+        { donationId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const [donation] = await narthexCrmDbDataSource.getDonations({
+            donationIds: [donationId],
+        });
+
+        return donation;
     },
 };
 

@@ -245,6 +245,62 @@ const Mutation: MutationResolvers = {
             id: householdId,
         };
     },
+    addDonation: async (
+        _,
+        { donationAddInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const donationId = await narthexCrmDbDataSource.addDonation(
+            donationAddInput,
+            clientToken!.id
+        );
+
+        const [donation] = await narthexCrmDbDataSource.getDonations({
+            donationIds: [donationId],
+        });
+        return donation;
+    },
+    updateDonation: async (
+        _,
+        { donationUpdateInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.updateDonation(
+            donationUpdateInput,
+            clientToken!.id
+        );
+        const [donation] = await narthexCrmDbDataSource.getDonations({
+            donationIds: [donationUpdateInput.id],
+        });
+
+        return donation;
+    },
+    deleteDonation: async (
+        _,
+        { donationId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.archiveDonation(
+            donationId,
+            clientToken!.id
+        );
+
+        return {
+            id: donationId,
+        };
+    },
 };
 
 export { Mutation };
