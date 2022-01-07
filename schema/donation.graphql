@@ -1,0 +1,32 @@
+type Donation implements Record {
+    id: Int!
+    household: Household
+    amount: String
+    date: String
+    notes: String
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+input DonationAddInput {
+    householdId: Int!
+    amount: String!
+    date: String!
+    notes: String
+}
+
+input DonationUpdateInput {
+    id: Int!
+    amount: String
+    date: String
+    notes: String
+}
+
+enum DonationSortKey {
+    ID
+    DATE
+    AMOUNT
+}

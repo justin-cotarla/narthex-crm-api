@@ -12,6 +12,8 @@ type Query {
 
     ministries(archived: Boolean): [Ministry!]!
     ministryById(ministryId: Int!): Ministry
+
+    donations(paginationOptions: PaginationOptions, sortKey: DonationSortKey, archived: Boolean): [Donation!]!
 }
 
 type Mutation {
@@ -31,6 +33,10 @@ type Mutation {
     deleteMinistry(ministryId: Int!): DeleteOutput!
     addMinistryDelegation(personId: Int!, ministryId: Int!): MinistryDelegation!
     removeMinistryDelegation(personId: Int!, ministryId: Int!): MinistryDelegationDeleteOutput!
+
+    addDonation(donationAddInput: DonationAddInput!): Donation!
+    updateDonation(donationUpdateInput: DonationUpdateInput!): Donation!
+    deleteDonation(donationId: Int!): DeleteOutput!
 }
 
 type DeleteOutput {
