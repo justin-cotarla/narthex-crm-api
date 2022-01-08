@@ -31,6 +31,7 @@ import {
     archiveDonation,
     getDonations,
     updateDonation,
+    _validateDateInDonationCampaignRange,
     _validateDonationProperties,
 } from '../donation';
 import { getDonationCampaigns } from '../donationCampaign';
@@ -61,6 +62,7 @@ beforeEach(() => {
     mockValidateCurrency.mockClear();
     mockValidateDate.mockClear();
     mockValidateDateInRange.mockClear();
+    mockGetDonationCampaigns.mockClear();
 });
 
 describe('donation', () => {
@@ -187,6 +189,9 @@ describe('donation', () => {
             }));
 
             mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
 
             const result = await addDonation(
                 mockQuery,
@@ -195,6 +200,7 @@ describe('donation', () => {
                     amount: '123.00',
                     householdId: 1,
                     notes: 'Stewardship 2022',
+                    donationCampaignId: 1,
                 },
                 1
             );
@@ -210,12 +216,21 @@ describe('donation', () => {
                             household_id,
                             created_by,
                             modified_by,
-                            notes
+                            notes,
+                            donation_campaign_id
                         )
                     VALUES
-                        (?, ?, ?, ?, ?, ?)
+                        (?, ?, ?, ?, ?, ?, ?)
                 `),
-                values: ['1995-01-01', '123.00', 1, 1, 1, 'Stewardship 2022'],
+                values: [
+                    '1995-01-01',
+                    '123.00',
+                    1,
+                    1,
+                    1,
+                    'Stewardship 2022',
+                    1,
+                ],
             });
         });
 
@@ -435,6 +450,223 @@ describe('donation', () => {
 
             expect(mockValidateCurrency).toHaveBeenCalled();
             expect(mockValidateDate).toHaveBeenCalled();
+        });
+    });
+
+    describe('_validateDateInDonationCampaignRange', () => {
+        it('accepts empty date and empty campaign id', async () => {
+            await _validateDateInDonationCampaignRange(mockQuery, {
+                id: 1,
+            });
+
+            expect(mockGetDonationCampaigns).toBeCalledTimes(0);
+            expect(validateDateInRange).toBeCalledTimes(0);
+        });
+
+        it('accepts new date in range of current campaign id', async () => {
+            mockValidateDateInRange.mockImplementation(() => true);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
+            await _validateDateInDonationCampaignRange(
+                mockQuery,
+                {
+                    id: 1,
+                    date: '2021-03-04',
+                },
+                {
+                    ...mockDonation,
+                    date: '2021-06-21',
+                    donationCampaign: {
+                        id: 5,
+                    },
+                }
+            );
+
+            expect(mockGetDonationCampaigns).toBeCalledWith(mockQuery, {
+                donationCampaignIds: [5],
+            });
+            expect(mockValidateDateInRange).toBeCalledWith(
+                '2021-03-04',
+                '2021-01-01',
+                '2021-12-31'
+            );
+        });
+
+        it('rejects new date not in range of current campaign id', async () => {
+            mockValidateDateInRange.mockImplementation(() => false);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
+            await expect(
+                _validateDateInDonationCampaignRange(
+                    mockQuery,
+                    {
+                        id: 1,
+                        date: '2021-03-04',
+                    },
+                    {
+                        ...mockDonation,
+                        date: '2021-06-21',
+                        donationCampaign: {
+                            id: 5,
+                        },
+                    }
+                )
+            ).rejects.toThrow(UserInputError);
+
+            expect(mockGetDonationCampaigns).toBeCalledWith(mockQuery, {
+                donationCampaignIds: [5],
+            });
+            expect(mockValidateDateInRange).toBeCalledWith(
+                '2021-03-04',
+                '2021-01-01',
+                '2021-12-31'
+            );
+        });
+
+        it('accepts current date in range of new campaign id', async () => {
+            mockValidateDateInRange.mockImplementation(() => true);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
+            await _validateDateInDonationCampaignRange(
+                mockQuery,
+                {
+                    id: 1,
+                    donationCampaignId: 1,
+                },
+                {
+                    ...mockDonation,
+                    date: '2021-06-21',
+                    donationCampaign: {
+                        id: 5,
+                    },
+                }
+            );
+
+            expect(mockGetDonationCampaigns).toBeCalledWith(mockQuery, {
+                donationCampaignIds: [1],
+            });
+            expect(mockValidateDateInRange).toBeCalledWith(
+                '2021-06-21',
+                '2021-01-01',
+                '2021-12-31'
+            );
+        });
+
+        it('rejects current date not in range of new campaign id', async () => {
+            mockValidateDateInRange.mockImplementation(() => false);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
+            await expect(
+                _validateDateInDonationCampaignRange(
+                    mockQuery,
+                    {
+                        id: 1,
+                        donationCampaignId: 1,
+                    },
+                    {
+                        ...mockDonation,
+                        date: '2021-06-21',
+                        donationCampaign: {
+                            id: 5,
+                        },
+                    }
+                )
+            ).rejects.toThrow(UserInputError);
+
+            expect(mockGetDonationCampaigns).toBeCalledWith(mockQuery, {
+                donationCampaignIds: [1],
+            });
+            expect(mockValidateDateInRange).toBeCalledWith(
+                '2021-06-21',
+                '2021-01-01',
+                '2021-12-31'
+            );
+        });
+
+        it('accepts new date in range of new campaign id', async () => {
+            mockValidateDateInRange.mockImplementation(() => true);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
+            await _validateDateInDonationCampaignRange(
+                mockQuery,
+                {
+                    id: 1,
+                    donationCampaignId: 1,
+                    date: '2021-03-04',
+                },
+                {
+                    ...mockDonation,
+                    date: '2021-06-21',
+                    donationCampaign: {
+                        id: 5,
+                    },
+                }
+            );
+
+            expect(mockGetDonationCampaigns).toBeCalledWith(mockQuery, {
+                donationCampaignIds: [1],
+            });
+            expect(mockValidateDateInRange).toBeCalledWith(
+                '2021-03-04',
+                '2021-01-01',
+                '2021-12-31'
+            );
+        });
+
+        it('rejects new date not in range of new campaign id', async () => {
+            mockValidateDateInRange.mockImplementation(() => false);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
+            await expect(
+                _validateDateInDonationCampaignRange(
+                    mockQuery,
+                    {
+                        id: 1,
+                        donationCampaignId: 1,
+                        date: '2021-03-04',
+                    },
+                    {
+                        ...mockDonation,
+                        date: '2021-06-21',
+                        donationCampaign: {
+                            id: 5,
+                        },
+                    }
+                )
+            ).rejects.toThrow(UserInputError);
+
+            expect(mockGetDonationCampaigns).toBeCalledWith(mockQuery, {
+                donationCampaignIds: [1],
+            });
+            expect(mockValidateDateInRange).toBeCalledWith(
+                '2021-03-04',
+                '2021-01-01',
+                '2021-12-31'
+            );
+        });
+
+        it('throws an error if the campaign does not exist', async () => {
+            mockGetDonationCampaigns.mockImplementation(async () => []);
+
+            await expect(
+                _validateDateInDonationCampaignRange(mockQuery, {
+                    id: 1,
+                    donationCampaignId: 5,
+                    date: '2021-03-04',
+                })
+            ).rejects.toThrow(UserInputError);
         });
     });
 });
