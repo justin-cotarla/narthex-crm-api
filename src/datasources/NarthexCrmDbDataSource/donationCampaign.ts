@@ -29,6 +29,7 @@ import {
 } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
+import * as donationModule from './donation';
 import * as donationCampaignModule from './donationCampaign';
 
 import { NarthexCrmDbDataSource } from '.';
@@ -85,8 +86,8 @@ const getDonationCampaigns = async (
 
     const whereClause = buildWhereClause([
         { clause: 'id in (?)', condition: donationCampaignIds.length !== 0 },
-        { clause: 'end_date < ?', condition: beforeDate !== null },
-        { clause: 'after_date > ?', condition: afterDate !== null },
+        { clause: 'end_date <= ?', condition: beforeDate !== null },
+        { clause: 'after_date >= ?', condition: afterDate !== null },
         { clause: 'archived <> 1', condition: !archived },
     ]);
 
@@ -193,6 +194,30 @@ const updateDonationCampaign = async (
 
     if (!donationCampaign) {
         throw new NotFoundError('DonationCampaign does not exist');
+    }
+
+    if (dateRange) {
+        const donationCount = (
+            await donationModule.getDonations(query, {
+                donationCampaignIds: [id],
+                afterDate: donationCampaign.startDate!,
+                beforeDate: donationCampaign.endDate!,
+            })
+        ).length;
+
+        const updatedRangeDonationCount = (
+            await donationModule.getDonations(query, {
+                donationCampaignIds: [id],
+                afterDate: dateRange.startDate,
+                beforeDate: dateRange.endDate,
+            })
+        ).length;
+
+        if (donationCount !== updatedRangeDonationCount) {
+            throw new UserInputError(
+                'New range does not cover existing donations'
+            );
+        }
     }
 
     if (Object.keys(donationCampaignUpdateInput).length <= 1) {

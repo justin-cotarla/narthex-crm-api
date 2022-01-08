@@ -1,5 +1,6 @@
 import {
     Donation,
+    DonationCampaign,
     Gender,
     Household,
     Ministry,
@@ -89,7 +90,33 @@ const mockDonation: Donation = {
     household: {
         id: 1,
     },
-    notes: 'Stewardship 2022',
+    notes: 'For new icons',
+    donationCampaign: {
+        id: 1,
+    },
 };
 
-export { mockHousehold, mockPerson, mockMinistry, mockDonation };
+const mockDonationCampaign: DonationCampaign = {
+    startDate: '2021-01-01',
+    endDate: '2021-12-31',
+    name: 'Stewardship 2021',
+    notes: 'Tough year',
+    createdBy: {
+        id: 1,
+    },
+    creationTimestamp: 1639872000,
+    id: 1,
+    modificationTimestamp: 1639872000,
+    modifiedBy: {
+        id: 1,
+    },
+    archived: false,
+};
+
+export {
+    mockHousehold,
+    mockPerson,
+    mockMinistry,
+    mockDonation,
+    mockDonationCampaign,
+};

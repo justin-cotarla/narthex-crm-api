@@ -48,22 +48,64 @@ export const _validateDonationProperties = (
     }
 };
 
+export const _validateDateInDonationCampaignRange = async (
+    query: MySqlDataSource['query'],
+    donationInput: DonationUpdateInput | DonationAddInput,
+    currentDonation?: Donation
+): Promise<void> => {
+    const { donationCampaignId, date } = donationInput;
+
+    if (!donationCampaignId && !date) {
+        return;
+    }
+
+    const referenceDonationCampaignId =
+        donationCampaignId || currentDonation?.donationCampaign!.id;
+
+    const referenceDate = date || currentDonation?.date;
+
+    const [donationCampaign] =
+        await donationCampaignModule.getDonationCampaigns(query, {
+            donationCampaignIds: [referenceDonationCampaignId!],
+        });
+
+    if (donationCampaignId && !donationCampaign) {
+        throw new UserInputError('Donation Campaign does not exist');
+    }
+
+    if (
+        !validateDateInRange(
+            referenceDate!,
+            donationCampaign.startDate!,
+            donationCampaign.endDate!
+        )
+    ) {
+        throw new UserInputError('Date not in donation campaign range');
+    }
+};
+
 const getDonations = async (
     query: MySqlDataSource['query'],
     options: {
         donationIds?: number[];
         householdIds?: number[];
+        donationCampaignIds?: number[];
         sortKey?: DonationSortKey;
         paginationOptions?: PaginationOptions;
         archived?: boolean | null;
+        beforeDate?: string | null;
+        afterDate?: string | null;
     } = {}
 ): Promise<Donation[]> => {
     const {
         householdIds = [],
         donationIds = [],
+        donationCampaignIds = [],
         paginationOptions,
         sortKey,
         archived = false,
+        beforeDate = null,
+        afterDate = null,
     } = options;
 
     const whereClause = buildWhereClause([
@@ -72,7 +114,13 @@ const getDonations = async (
             clause: 'household_id in (?)',
             condition: householdIds.length !== 0,
         },
+        {
+            clause: 'donation_campaign_id in (?)',
+            condition: donationCampaignIds.length !== 0,
+        },
         { clause: 'archived <> 1', condition: !archived },
+        { clause: 'date <= ?', condition: beforeDate !== null },
+        { clause: 'date >= ?', condition: afterDate !== null },
     ]);
 
     const paginationClause =
@@ -103,6 +151,9 @@ const getDonations = async (
     const values = [
         ...(donationIds.length !== 0 ? [donationIds] : []),
         ...(householdIds.length !== 0 ? [householdIds] : []),
+        ...(donationCampaignIds.length !== 0 ? [donationCampaignIds] : []),
+        ...(beforeDate ? [beforeDate] : []),
+        ...(afterDate ? [afterDate] : []),
     ];
 
     const rows = await query<DBDonation[]>({
@@ -128,6 +179,13 @@ const addDonation = async (
     });
     if (!household) {
         throw new UserInputError('Household does not exist');
+    }
+
+    if (donationCampaignId) {
+        await donationModule._validateDateInDonationCampaignRange(
+            query,
+            donationAddInput
+        );
     }
 
     const insertClause = buildInsertClause([
@@ -189,6 +247,12 @@ const updateDonation = async (
     if (Object.keys(donationUpdateInput).length <= 1) {
         throw new UserInputError('Nothing to update');
     }
+
+    await donationModule._validateDateInDonationCampaignRange(
+        query,
+        donationUpdateInput,
+        donation
+    );
 
     donationModule._validateDonationProperties(donationUpdateInput);
 

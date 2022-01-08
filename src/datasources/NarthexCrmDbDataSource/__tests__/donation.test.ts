@@ -3,7 +3,11 @@ import { mocked, SpyInstance, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
 import { mockDBDonation } from '../../../__mocks__/database';
-import { mockHousehold, mockDonation } from '../../../__mocks__/schema';
+import {
+    mockHousehold,
+    mockDonation,
+    mockDonationCampaign,
+} from '../../../__mocks__/schema';
 import {
     DBDonation,
     DBUpdateResponse,
@@ -16,7 +20,11 @@ import {
     SortOrder,
 } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
-import { validateCurrency, validateDate } from '../../../util/validation';
+import {
+    validateCurrency,
+    validateDate,
+    validateDateInRange,
+} from '../../../util/validation';
 import * as donationModule from '../donation';
 import {
     addDonation,
@@ -25,6 +33,7 @@ import {
     updateDonation,
     _validateDonationProperties,
 } from '../donation';
+import { getDonationCampaigns } from '../donationCampaign';
 import { getHouseholds } from '../household';
 
 const mockQuery = jest.fn();
@@ -33,11 +42,17 @@ const mockLogRecordChange = jest.fn();
 jest.mock('../household');
 const mockGetHouseholds = mocked(getHouseholds);
 
+jest.mock('../donationCampaign');
+const mockGetDonationCampaigns = mocked(getDonationCampaigns);
+
 jest.mock('../../../util/validation');
 const mockValidateCurrency = mocked(validateCurrency).mockImplementation(
     () => true
 );
 const mockValidateDate = mocked(validateDate).mockImplementation(() => true);
+const mockDalidateDateInRange = mocked(validateDateInRange).mockImplementation(
+    () => true
+);
 
 beforeEach(() => {
     mockQuery.mockClear();
@@ -45,6 +60,7 @@ beforeEach(() => {
     mockGetHouseholds.mockClear();
     mockValidateCurrency.mockClear();
     mockValidateDate.mockClear();
+    mockDalidateDateInRange.mockClear();
 });
 
 describe('donation', () => {
@@ -260,6 +276,10 @@ describe('donation', () => {
                 { ...mockDonation, household: { id: 1 } },
             ]);
             mockGetHouseholds.mockImplementation(async () => [mockHousehold]);
+            mockGetDonationCampaigns.mockImplementation(async () => [
+                mockDonationCampaign,
+            ]);
+
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -272,9 +292,9 @@ describe('donation', () => {
                 mockLogRecordChange,
                 {
                     id: 1,
-                    date: '1995-01-01',
+                    date: '2021-03-04',
                     amount: '123.00',
-                    notes: 'Stewardship 2022',
+                    notes: 'For Elena',
                 },
                 2
             );
@@ -293,7 +313,7 @@ describe('donation', () => {
                     WHERE
                         ID = ?;
                 `),
-                values: [2, '123.00', '1995-01-01', 'Stewardship 2022', 1],
+                values: [2, '123.00', '2021-03-04', 'For Elena', 1],
             });
             expect(mockLogRecordChange).toHaveBeenCalledWith(
                 RecordTable.DONATION,
