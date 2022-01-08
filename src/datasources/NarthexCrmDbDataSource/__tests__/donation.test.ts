@@ -50,7 +50,7 @@ const mockValidateCurrency = mocked(validateCurrency).mockImplementation(
     () => true
 );
 const mockValidateDate = mocked(validateDate).mockImplementation(() => true);
-const mockDalidateDateInRange = mocked(validateDateInRange).mockImplementation(
+const mockValidateDateInRange = mocked(validateDateInRange).mockImplementation(
     () => true
 );
 
@@ -60,7 +60,7 @@ beforeEach(() => {
     mockGetHouseholds.mockClear();
     mockValidateCurrency.mockClear();
     mockValidateDate.mockClear();
-    mockDalidateDateInRange.mockClear();
+    mockValidateDateInRange.mockClear();
 });
 
 describe('donation', () => {

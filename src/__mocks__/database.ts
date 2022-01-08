@@ -1,6 +1,7 @@
 import {
     DBClient,
     DBDonation,
+    DBDonationCampaign,
     DBHousehold,
     DBMinistry,
     DBMinistryDelegation,
@@ -78,7 +79,20 @@ const mockDBDonation: DBDonation = {
     date: '2022-01-07',
     household_id: 1,
     donation_campaign_id: 1,
-    notes: 'Stewardship 2022',
+    notes: 'For icons',
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
+const mockDBDonationCampaign: DBDonationCampaign = {
+    id: 1,
+    start_date: '2021-01-01',
+    end_date: '2021-12-31',
+    name: 'Stewardship 2021',
+    notes: 'Pretty bad year',
     created_by: 1,
     creation_timestamp: new Date('2021/12/19'),
     modified_by: 1,
@@ -93,4 +107,5 @@ export {
     mockDBClient,
     mockDBMinistryDelegation,
     mockDBDonation,
+    mockDBDonationCampaign,
 };
