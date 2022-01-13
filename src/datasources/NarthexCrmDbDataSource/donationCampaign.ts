@@ -41,6 +41,10 @@ export const _validateDonationCampaignProperties = (
 ) => {
     const { name, dateRange } = donationCampaignInput;
 
+    if (name === null || dateRange === null) {
+        throw new UserInputError('Mandatory input cannot be null');
+    }
+
     if (
         dateRange &&
         !validateDateRange(dateRange.startDate, dateRange.endDate)

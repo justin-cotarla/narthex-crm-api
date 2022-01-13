@@ -28,9 +28,9 @@ input PersonAddInput {
     gender: Gender!
     birthDate: String!
     householdId: Int!
-    phoneNumber: String
-    emailAddress: String
-    title: String
+    phoneNumber: String @optional
+    emailAddress: String @optional
+    title: String @optional
 }
 
 input PersonUpdateInput {
@@ -40,9 +40,9 @@ input PersonUpdateInput {
     gender: Gender
     birthDate: String
     householdId: Int
-    phoneNumber: String
-    emailAddress: String
-    title: String
+    phoneNumber: String @optional
+    emailAddress: String @optional
+    title: String @optional
 }
 
 enum PersonSortKey {

@@ -16,16 +16,16 @@ input DonationAddInput {
     householdId: Int!
     amount: String!
     date: String!
-    notes: String
-    donationCampaignId: Int
+    notes: String @optional
+    donationCampaignId: Int @optional
 }
 
 input DonationUpdateInput {
     id: Int!
     amount: String
     date: String
-    notes: String
-    donationCampaignId: Int
+    notes: String @optional
+    donationCampaignId: Int @optional
 }
 
 enum DonationSortKey {

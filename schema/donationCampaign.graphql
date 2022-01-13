@@ -15,14 +15,14 @@ type DonationCampaign implements Record {
 input DonationCampaignAddInput {
     name: String!
     dateRange: DateRange!
-    notes: String
+    notes: String @optional
 }
 
 input DonationCampaignUpdateInput {
     id: Int!
     name: String
     dateRange: DateRange
-    notes: String
+    notes: String @optional
 }
 
 input DateRange {

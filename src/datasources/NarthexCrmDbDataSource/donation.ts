@@ -40,6 +40,10 @@ export const _validateDonationProperties = (
 ) => {
     const { amount, date } = donationInput;
 
+    if (date === null || amount === null) {
+        throw new UserInputError('Mandatory input cannot be null');
+    }
+
     if (date && !validateDate(date)) {
         throw new UserInputError("Invalid date, expected format: 'YYYY-MM-DD'");
     }

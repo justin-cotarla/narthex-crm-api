@@ -23,7 +23,7 @@ type Address {
 
 input AddressInput {
     line1: String!
-    line2: String
+    line2: String @optional
     city: String!
     state: String!
     postalCode: String!
@@ -37,7 +37,7 @@ input HouseholdAddInput {
 
 input HouseholdUpdateInput {
     id: Int!
-    headId: Int
+    headId: Int @optional
     name: String
     address: AddressInput
 }

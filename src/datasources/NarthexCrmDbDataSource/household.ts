@@ -35,6 +35,10 @@ const _validateHouseholdProperties = (
 ) => {
     const { address, name } = householdInput;
 
+    if (name === null || address === null) {
+        throw new UserInputError('Mandatory input cannot be null');
+    }
+
     if (name && !validateRecordName(name)) {
         throw new UserInputError('Invalid household name');
     }

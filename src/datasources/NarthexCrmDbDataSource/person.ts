@@ -37,7 +37,24 @@ import { NarthexCrmDbDataSource } from './';
 export const _validatePersonProperties = (
     personInput: PersonAddInput | PersonUpdateInput
 ) => {
-    const { firstName, lastName, birthDate, emailAddress } = personInput;
+    const {
+        firstName,
+        lastName,
+        birthDate,
+        emailAddress,
+        householdId,
+        gender,
+    } = personInput;
+
+    if (
+        householdId === null ||
+        birthDate === null ||
+        gender === null ||
+        firstName === null ||
+        lastName === null
+    ) {
+        throw new UserInputError('Mandatory input cannot be null');
+    }
 
     if (firstName && !validateRecordName(firstName)) {
         throw new UserInputError('Invalid first name');

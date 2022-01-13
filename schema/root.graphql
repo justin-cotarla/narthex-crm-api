@@ -52,3 +52,5 @@ type DeleteOutput {
     id: Int!
 }
  
+
+ directive @optional on INPUT_FIELD_DEFINITION
