@@ -46,6 +46,10 @@ type Mutation {
     addDonationCampaign(donationCampaignAddInput: DonationCampaignAddInput!): DonationCampaign!
     updateDonationCampaign(donationCampaignUpdateInput: DonationCampaignUpdateInput!): DonationCampaign!
     deleteDonationCampaign(donationCampaignId: Int!): DeleteOutput!
+
+    addMilestone(milestoneAddInput: MilestoneAddInput!): Milestone!
+    updateMilestone(milestoneUpdateInput: MilestoneUpdateInput!): Milestone!
+    deleteMilestone(milestoneId: Int!): DeleteOutput!
 }
 
 type DeleteOutput {

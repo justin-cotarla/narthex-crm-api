@@ -127,7 +127,7 @@ const updateMinistry = async (
     });
 
     if (!ministry) {
-        throw new NotFoundError('Person does not exist');
+        throw new NotFoundError('Ministry does not exist');
     }
 
     if (Object.keys(ministryUpdateInput).length <= 1) {
@@ -149,7 +149,7 @@ const updateMinistry = async (
     `);
 
     const values = [
-        ...(name ? [name] : []),
+        ...(name !== undefined ? [name] : []),
         ...(color !== undefined ? [parseInt(color!.substring(1), 16)] : []),
         id,
     ];

@@ -1,0 +1,33 @@
+type Milestone implements Record {
+    id: Int!
+    subject: Person
+    date: String
+    type: MilestoneType
+    notes: String
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+enum MilestoneType {
+    catecumenate,
+    baptism,
+    marriage,
+    ordination
+}
+
+input MilestoneAddInput {
+    personId: Int!
+    date: String!
+    type: MilestoneType!
+    notes: String @optional
+}
+
+input MilestoneUpdateInput {
+    id: Int!
+    date: String
+    type: MilestoneType
+    notes: String @optional
+}

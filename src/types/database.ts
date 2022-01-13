@@ -1,4 +1,4 @@
-import { Gender } from './generated/graphql';
+import { Gender, MilestoneType } from './generated/graphql';
 
 const WHERE_OPERATIONS = {
     AND: ' and ',
@@ -17,6 +17,7 @@ enum RecordTable {
     HOUSEHOLD = 'household',
     DONATION = 'donation',
     DONATION_CAMPAIGN = 'donation_campaign',
+    MILESTONE = 'milestone',
 }
 
 interface DBRecord {
@@ -89,6 +90,15 @@ interface DBDonationCampaign extends DBRecord {
     notes?: string;
 }
 
+interface DBMilestone extends DBRecord {
+    id: number;
+    person_id: number;
+    name: string;
+    date: string;
+    type: MilestoneType;
+    notes?: string;
+}
+
 interface DBInsertResponse {
     insertId: number;
 }
@@ -112,4 +122,5 @@ export type {
     DBMinistryDelegation,
     DBDonation,
     DBDonationCampaign,
+    DBMilestone,
 };

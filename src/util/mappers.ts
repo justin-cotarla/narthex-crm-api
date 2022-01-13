@@ -6,6 +6,7 @@ import {
     DBDonation,
     DBDonationCampaign,
     DBHousehold,
+    DBMilestone,
     DBMinistry,
     DBMinistryDelegation,
     DBPerson,
@@ -20,6 +21,7 @@ import {
     Person,
     Record,
     DonationCampaign,
+    Milestone,
 } from '../types/generated/graphql';
 
 const mapRecord = (dbRecord: DBRecord): Record => ({
@@ -137,6 +139,17 @@ const mapDonationCampaign = (
     ...mapRecord(dbDonationCampaign),
 });
 
+const mapMilestone = (dbMilestone: DBMilestone): Milestone => ({
+    id: dbMilestone.id,
+    subject: {
+        id: dbMilestone.person_id,
+    },
+    date: dbMilestone.date,
+    notes: dbMilestone.notes,
+    type: dbMilestone.type,
+    ...mapRecord(dbMilestone),
+});
+
 export {
     mapClient,
     mapMinistry,
@@ -145,4 +158,5 @@ export {
     mapMinistryDelegation,
     mapDonation,
     mapDonationCampaign,
+    mapMilestone,
 };

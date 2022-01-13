@@ -360,6 +360,62 @@ const Mutation: MutationResolvers = {
             id: donationCampaignId,
         };
     },
+    addMilestone: async (
+        _,
+        { milestoneAddInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const milestoneId = await narthexCrmDbDataSource.addMilestone(
+            milestoneAddInput,
+            clientToken!.id
+        );
+
+        const [milestone] = await narthexCrmDbDataSource.getMilestones({
+            milestoneIds: [milestoneId],
+        });
+        return milestone;
+    },
+    updateMilestone: async (
+        _,
+        { milestoneUpdateInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.updateMilestone(
+            milestoneUpdateInput,
+            clientToken!.id
+        );
+        const [milestone] = await narthexCrmDbDataSource.getMilestones({
+            milestoneIds: [milestoneUpdateInput.id],
+        });
+
+        return milestone;
+    },
+    deleteMilestone: async (
+        _,
+        { milestoneId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.archiveMilestone(
+            milestoneId,
+            clientToken!.id
+        );
+
+        return {
+            id: milestoneId,
+        };
+    },
 };
 
 export { Mutation };

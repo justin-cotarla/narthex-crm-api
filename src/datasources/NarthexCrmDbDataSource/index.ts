@@ -24,6 +24,12 @@ import {
     archiveHousehold,
 } from './household';
 import {
+    getMilestones,
+    addMilestone,
+    updateMilestone,
+    archiveMilestone,
+} from './milestone';
+import {
     addMinistry,
     archiveMinistry,
     getMinistries,
@@ -223,6 +229,30 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         ...args: Tail<Tail<Parameters<typeof archiveDonationCampaign>>>
     ) =>
         archiveDonationCampaign(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    getMilestones = (...args: Tail<Parameters<typeof getMilestones>>) =>
+        getMilestones(this.cacheQuery.bind(this), ...args);
+
+    addMilestone = (...args: Tail<Parameters<typeof addMilestone>>) =>
+        addMilestone(this.query.bind(this), ...args);
+
+    updateMilestone = (
+        ...args: Tail<Tail<Parameters<typeof updateMilestone>>>
+    ) =>
+        updateMilestone(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    archiveMilestone = (
+        ...args: Tail<Tail<Parameters<typeof archiveMilestone>>>
+    ) =>
+        archiveMilestone(
             this.query.bind(this),
             this.logRecordChange.bind(this),
             ...args
