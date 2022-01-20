@@ -18,6 +18,9 @@ type Query {
 
     donationCampaigns(paginationOptions: PaginationOptions, sortKey: DonationCampaignSortKey, beforeDate: String, afterDate: String, archived: Boolean): [DonationCampaign!]!
     donationCampaignById(donationCampaignId: Int!): DonationCampaign
+
+    events(paginationOptions: PaginationOptions, sortKey: EventSortKey, archived: Boolean): [Event!]!
+    eventById(eventId: Int!): Event
 }
 
 type Mutation {
@@ -50,6 +53,10 @@ type Mutation {
     addMilestone(milestoneAddInput: MilestoneAddInput!): Milestone!
     updateMilestone(milestoneUpdateInput: MilestoneUpdateInput!): Milestone!
     deleteMilestone(milestoneId: Int!): DeleteOutput!
+
+    addEvent(eventAddInput: EventAddInput!): Event!
+    updateEvent(eventUpdateInput: EventUpdateInput!): Event!
+    deleteEvent(eventId: Int!): DeleteOutput!
 }
 
 type DeleteOutput {

@@ -1,0 +1,29 @@
+type Event implements Record {
+    id: Int!
+    name: String
+    datetime: Int
+    location: String
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+input EventAddInput {
+    name: String!
+    datetime: Int!
+    location: String @optional
+}
+
+input EventUpdateInput {
+    id: Int!
+    name: String
+    datetime: Int
+    location: String @optional
+}
+
+enum EventSortKey {
+    ID
+    DATE
+}
