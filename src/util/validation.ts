@@ -1,4 +1,4 @@
-import { isAfter, isBefore, parse } from 'date-fns';
+import { isAfter, isBefore, isValid, parse } from 'date-fns';
 
 import { AddressInput } from '../types/generated/graphql';
 
@@ -17,8 +17,11 @@ const validateRecordName = (recordName: string): boolean => {
 };
 
 const validateDate = (dateString: string): boolean => {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    return dateRegex.test(dateString);
+    return isValid(parse(dateString, 'yyyy-MM-dd', new Date()));
+};
+
+const validateDateTime = (dateTimeString: string): boolean => {
+    return isValid(parse(dateTimeString, 'yyyy-MM-dd HH:mm', new Date()));
 };
 
 const validateDateRange = (startDate: string, endDate: string): boolean => {
@@ -69,4 +72,5 @@ export {
     validateCurrency,
     validateDateRange,
     validateDateInRange,
+    validateDateTime,
 };

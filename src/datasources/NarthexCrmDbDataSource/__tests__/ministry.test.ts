@@ -206,12 +206,13 @@ describe('ministry', () => {
                         UPDATE
                             ministry
                         SET
+                            modified_by = ?,
                             name = ?,
                             color = ?
                         WHERE
                             ID = ?;
                     `),
-                values: ['Council', 0, 1],
+                values: [2, 'Council', 0, 1],
             });
 
             expect(mockLogRecordChange).toHaveBeenCalledWith(

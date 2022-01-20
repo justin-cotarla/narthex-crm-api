@@ -27,7 +27,7 @@ class MySqlDataSource extends DataSource {
                     return next();
                 }
             },
-            dateStrings: ['DATE'],
+            dateStrings: ['DATE', 'DATETIME'],
         });
     }
 

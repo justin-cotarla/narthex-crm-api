@@ -1,6 +1,7 @@
 import {
     DonationCampaignSortKey,
     DonationSortKey,
+    EventSortKey,
     HouseholdSortKey,
     PaginationOptions,
     PersonSortKey,
@@ -244,6 +245,43 @@ const Query: QueryResolvers = {
             });
 
         return donationCampaign;
+    },
+
+    events: async (
+        _,
+        {
+            archived,
+            sortKey = EventSortKey.Datetime,
+            paginationOptions = defaultPaginationOptions,
+        },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const events = await narthexCrmDbDataSource.getEvents({
+            sortKey: sortKey!,
+            paginationOptions: paginationOptions!,
+            archived,
+        });
+        return events;
+    },
+
+    eventById: async (
+        _,
+        { eventId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const [event] = await narthexCrmDbDataSource.getEvents({
+            eventIds: [eventId],
+        });
+
+        return event;
     },
 };
 

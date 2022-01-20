@@ -5,6 +5,7 @@ import {
     DBClient,
     DBDonation,
     DBDonationCampaign,
+    DBEvent,
     DBHousehold,
     DBMilestone,
     DBMinistry,
@@ -22,6 +23,7 @@ import {
     Record,
     DonationCampaign,
     Milestone,
+    Event,
 } from '../types/generated/graphql';
 
 const mapRecord = (dbRecord: DBRecord): Record => ({
@@ -150,6 +152,14 @@ const mapMilestone = (dbMilestone: DBMilestone): Milestone => ({
     ...mapRecord(dbMilestone),
 });
 
+const mapEvent = (dbEvent: DBEvent): Event => ({
+    id: dbEvent.id,
+    name: dbEvent.name,
+    datetime: dbEvent.datetime,
+    location: dbEvent.location,
+    ...mapRecord(dbEvent),
+});
+
 export {
     mapClient,
     mapMinistry,
@@ -159,4 +169,5 @@ export {
     mapDonation,
     mapDonationCampaign,
     mapMilestone,
+    mapEvent,
 };

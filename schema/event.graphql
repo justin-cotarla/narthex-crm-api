@@ -1,7 +1,7 @@
 type Event implements Record {
     id: Int!
     name: String
-    datetime: Int
+    datetime: String
     location: String
     createdBy: Client
     creationTimestamp: Int
@@ -12,18 +12,18 @@ type Event implements Record {
 
 input EventAddInput {
     name: String!
-    datetime: Int!
+    datetime: String!
     location: String @optional
 }
 
 input EventUpdateInput {
     id: Int!
     name: String
-    datetime: Int
+    datetime: String
     location: String @optional
 }
 
 enum EventSortKey {
     ID
-    DATE
+    DATETIME
 }

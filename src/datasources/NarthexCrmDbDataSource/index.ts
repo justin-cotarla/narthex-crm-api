@@ -17,6 +17,7 @@ import {
     updateDonationCampaign,
     archiveDonationCampaign,
 } from './donationCampaign';
+import { getEvents, addEvent, updateEvent, archiveEvent } from './event';
 import {
     getHouseholds,
     addHousehold,
@@ -253,6 +254,26 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
         ...args: Tail<Tail<Parameters<typeof archiveMilestone>>>
     ) =>
         archiveMilestone(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    getEvents = (...args: Tail<Parameters<typeof getEvents>>) =>
+        getEvents(this.cacheQuery.bind(this), ...args);
+
+    addEvent = (...args: Tail<Parameters<typeof addEvent>>) =>
+        addEvent(this.query.bind(this), ...args);
+
+    updateEvent = (...args: Tail<Tail<Parameters<typeof updateEvent>>>) =>
+        updateEvent(
+            this.query.bind(this),
+            this.logRecordChange.bind(this),
+            ...args
+        );
+
+    archiveEvent = (...args: Tail<Tail<Parameters<typeof archiveEvent>>>) =>
+        archiveEvent(
             this.query.bind(this),
             this.logRecordChange.bind(this),
             ...args

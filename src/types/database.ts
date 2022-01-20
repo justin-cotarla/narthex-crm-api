@@ -18,6 +18,7 @@ enum RecordTable {
     DONATION = 'donation',
     DONATION_CAMPAIGN = 'donation_campaign',
     MILESTONE = 'milestone',
+    EVENT = 'event',
 }
 
 interface DBRecord {
@@ -98,6 +99,13 @@ interface DBMilestone extends DBRecord {
     notes?: string;
 }
 
+interface DBEvent extends DBRecord {
+    id: number;
+    name: string;
+    datetime: string;
+    location: string;
+}
+
 interface DBInsertResponse {
     insertId: number;
 }
@@ -122,4 +130,5 @@ export type {
     DBDonation,
     DBDonationCampaign,
     DBMilestone,
+    DBEvent,
 };

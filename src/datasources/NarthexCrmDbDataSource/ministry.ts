@@ -137,6 +137,7 @@ const updateMinistry = async (
     ministryModule._validateMinistryProperties(ministryUpdateInput);
 
     const setClause = buildSetClause([
+        { key: 'modified_by', condition: true },
         { key: 'name', condition: name !== undefined },
         { key: 'color', condition: color !== undefined },
     ]);
@@ -149,6 +150,7 @@ const updateMinistry = async (
     `);
 
     const values = [
+        clientId,
         ...(name !== undefined ? [name] : []),
         ...(color !== undefined ? [parseInt(color!.substring(1), 16)] : []),
         id,

@@ -416,6 +416,59 @@ const Mutation: MutationResolvers = {
             id: milestoneId,
         };
     },
+    addEvent: async (
+        _,
+        { eventAddInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        const eventId = await narthexCrmDbDataSource.addEvent(
+            eventAddInput,
+            clientToken!.id
+        );
+
+        const [event] = await narthexCrmDbDataSource.getEvents({
+            eventIds: [eventId],
+        });
+        return event;
+    },
+    updateEvent: async (
+        _,
+        { eventUpdateInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.updateEvent(
+            eventUpdateInput,
+            clientToken!.id
+        );
+        const [event] = await narthexCrmDbDataSource.getEvents({
+            eventIds: [eventUpdateInput.id],
+        });
+
+        return event;
+    },
+    deleteEvent: async (
+        _,
+        { eventId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.archiveEvent(eventId, clientToken!.id);
+
+        return {
+            id: eventId,
+        };
+    },
 };
 
 export { Mutation };
