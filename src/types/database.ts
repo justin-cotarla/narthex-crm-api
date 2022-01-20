@@ -93,7 +93,6 @@ interface DBDonationCampaign extends DBRecord {
 interface DBMilestone extends DBRecord {
     id: number;
     person_id: number;
-    name: string;
     date: string;
     type: MilestoneType;
     notes?: string;

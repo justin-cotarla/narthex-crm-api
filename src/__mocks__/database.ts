@@ -3,11 +3,12 @@ import {
     DBDonation,
     DBDonationCampaign,
     DBHousehold,
+    DBMilestone,
     DBMinistry,
     DBMinistryDelegation,
     DBPerson,
 } from '../types/database';
-import { Gender } from '../types/generated/graphql';
+import { Gender, MilestoneType } from '../types/generated/graphql';
 
 const mockDBClient: DBClient = {
     id: 1,
@@ -100,6 +101,19 @@ const mockDBDonationCampaign: DBDonationCampaign = {
     archived: 0,
 };
 
+const mockDBMilestone: DBMilestone = {
+    id: 1,
+    type: MilestoneType.Baptism,
+    date: '2020-05-22',
+    person_id: 1,
+    notes: 'Pandemic baptism',
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
 export {
     mockDBHousehold,
     mockDBPerson,
@@ -108,4 +122,5 @@ export {
     mockDBMinistryDelegation,
     mockDBDonation,
     mockDBDonationCampaign,
+    mockDBMilestone,
 };

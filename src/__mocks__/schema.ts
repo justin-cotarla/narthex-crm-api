@@ -3,6 +3,8 @@ import {
     DonationCampaign,
     Gender,
     Household,
+    Milestone,
+    MilestoneType,
     Ministry,
     Person,
 } from '../types/generated/graphql';
@@ -113,10 +115,30 @@ const mockDonationCampaign: DonationCampaign = {
     archived: false,
 };
 
+const mockMilestone: Milestone = {
+    type: MilestoneType.Baptism,
+    date: '2020-05-22',
+    subject: {
+        id: 1,
+    },
+    notes: 'Pandemic baptism',
+    createdBy: {
+        id: 1,
+    },
+    creationTimestamp: 1639872000,
+    id: 1,
+    modificationTimestamp: 1639872000,
+    modifiedBy: {
+        id: 1,
+    },
+    archived: false,
+};
+
 export {
     mockHousehold,
     mockPerson,
     mockMinistry,
     mockDonation,
     mockDonationCampaign,
+    mockMilestone,
 };
