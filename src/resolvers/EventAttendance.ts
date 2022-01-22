@@ -1,6 +1,6 @@
-import { EventResolvers } from '../types/generated/graphql';
+import { EventAttendanceResolvers } from '../types/generated/graphql';
 
-const Event: EventResolvers = {
+const EventAttendance: EventAttendanceResolvers = {
     createdBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
         if (!createdBy) {
             return null;
@@ -19,13 +19,17 @@ const Event: EventResolvers = {
         return clientResult ?? null;
     },
 
-    attendance: async (
-        { id },
-        _,
-        { dataLoaders: { eventAttendanceByEvent } }
-    ) => {
-        return (await eventAttendanceByEvent.load(id)) ?? [];
+    attendee: async ({ attendee }, _, { dataLoaders: { people } }) => {
+        const [peopleResult] = await people.load(attendee.id);
+
+        return peopleResult;
+    },
+
+    event: async ({ event }, _, { dataLoaders: { events } }) => {
+        const [eventResult] = await events.load(event.id);
+
+        return eventResult;
     },
 };
 
-export { Event };
+export { EventAttendance };

@@ -6,6 +6,11 @@ import {
     getDonationByHouseholdLoader,
     getDonationLoader,
 } from './donationLoader';
+import {
+    getEventAttendanceByPersonLoader,
+    getEventAttendanceByEventLoader,
+} from './eventAttendanceLoader';
+import { getEventLoader } from './eventLoader';
 import { getHouseholdLoader } from './householdLoader';
 import { getMilestoneByPersonLoader } from './milestoneLoader';
 import {
@@ -29,6 +34,11 @@ const createDataLoaders = (narthexCrmDataSource: NarthexCrmDbDataSource) => ({
     donationsByHousehold: getDonationByHouseholdLoader(narthexCrmDataSource),
     donationCampaigns: getDonationCampaignLoader(narthexCrmDataSource),
     milestonesByPerson: getMilestoneByPersonLoader(narthexCrmDataSource),
+    events: getEventLoader(narthexCrmDataSource),
+    eventAttendanceByPerson:
+        getEventAttendanceByPersonLoader(narthexCrmDataSource),
+    eventAttendanceByEvent:
+        getEventAttendanceByEventLoader(narthexCrmDataSource),
 });
 
 export { createDataLoaders };

@@ -61,11 +61,11 @@ const addPersonToMinsitry = async (
     });
 
     if (!person || person.archived) {
-        throw new UserInputError('Person does not exist or is archived');
+        throw new UserInputError('Person does not exist');
     }
 
     if (!ministry || ministry.archived) {
-        throw new UserInputError('Ministry does not exist or is archived');
+        throw new UserInputError('Ministry does not exist');
     }
 
     const insertClause = buildInsertClause([
@@ -110,7 +110,7 @@ const removePersonFromMinistry = async (
     });
 
     if (!rows || rows.affectedRows === 0) {
-        throw new DatabaseError('Could not archive person');
+        throw new DatabaseError('Could not delete minstry delegation');
     }
 };
 

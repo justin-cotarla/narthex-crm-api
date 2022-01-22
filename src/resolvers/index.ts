@@ -3,6 +3,7 @@ import { Resolvers } from '../types/generated/graphql';
 import { Donation } from './Donation';
 import { DonationCampaign } from './DonationCampaign';
 import { Event } from './Event';
+import { EventAttendance } from './EventAttendance';
 import { Household } from './Household';
 import { Milestone } from './Milestone';
 import { Ministry } from './Ministry';
@@ -22,6 +23,7 @@ const resolvers: Resolvers = {
     DonationCampaign,
     Milestone,
     Event,
+    EventAttendance,
 };
 
 export { resolvers };

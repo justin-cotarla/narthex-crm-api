@@ -39,6 +39,14 @@ const Person: PersonResolvers = {
 
         return householdResult ?? null;
     },
+
+    eventAttendance: async (
+        { id },
+        _,
+        { dataLoaders: { eventAttendanceByPerson } }
+    ) => {
+        return (await eventAttendanceByPerson.load(id)) ?? [];
+    },
 };
 
 export { Person };

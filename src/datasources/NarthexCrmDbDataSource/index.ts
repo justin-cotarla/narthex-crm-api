@@ -18,6 +18,7 @@ import {
     archiveDonationCampaign,
 } from './donationCampaign';
 import { getEvents, addEvent, updateEvent, archiveEvent } from './event';
+import { getEventAttendance, setEventAttendance } from './eventAttendance';
 import {
     getHouseholds,
     addHousehold,
@@ -278,6 +279,14 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             this.logRecordChange.bind(this),
             ...args
         );
+
+    getEventAttendance = (
+        ...args: Tail<Parameters<typeof getEventAttendance>>
+    ) => getEventAttendance(this.cacheQuery.bind(this), ...args);
+
+    setEventAttendance = (
+        ...args: Tail<Parameters<typeof setEventAttendance>>
+    ) => setEventAttendance(this.query.bind(this), ...args);
 }
 
 export { NarthexCrmDbDataSource };

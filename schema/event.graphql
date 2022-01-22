@@ -3,6 +3,7 @@ type Event implements Record {
     name: String
     datetime: String
     location: String
+    attendance: [EventAttendance!]
     createdBy: Client
     creationTimestamp: Int
     modifiedBy: Client

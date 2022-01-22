@@ -1,0 +1,23 @@
+type EventAttendance implements Record {
+    event: Event!
+    attendee: Person!
+    dateRegistered: String
+    attended: Boolean
+    createdBy: Client
+    creationTimestamp: Int
+    modifiedBy: Client
+    modificationTimestamp: Int
+    archived: Boolean
+}
+
+input EventAttendanceSetInput {
+    eventId: Int!
+    personId: Int!
+    dateRegistered: String
+    attended: Boolean
+}
+
+type EventAttendanceDeleteOutput {
+    eventId: Int!
+    personId: Int!
+}

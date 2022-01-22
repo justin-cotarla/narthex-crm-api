@@ -10,6 +10,7 @@ type Person implements Record {
     birthDate: String
     title: String
     ministryDelegations: [MinistryDelegation!]
+    eventAttendance: [EventAttendance!]
     milestones: [Milestone!]
     createdBy: Client
     creationTimestamp: Int

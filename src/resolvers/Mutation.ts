@@ -469,6 +469,28 @@ const Mutation: MutationResolvers = {
             id: eventId,
         };
     },
+    setEventRegistration: async (
+        _,
+        { eventAttendanceSetInput },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.setEventAttendance(
+            eventAttendanceSetInput,
+            clientToken!.id
+        );
+
+        const [eventAttendence] =
+            await narthexCrmDbDataSource.getEventAttendance(
+                [eventAttendanceSetInput.eventId],
+                [eventAttendanceSetInput.personId]
+            );
+
+        return eventAttendence;
+    },
 };
 
 export { Mutation };

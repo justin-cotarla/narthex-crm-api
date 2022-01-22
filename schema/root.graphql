@@ -57,6 +57,9 @@ type Mutation {
     addEvent(eventAddInput: EventAddInput!): Event!
     updateEvent(eventUpdateInput: EventUpdateInput!): Event!
     deleteEvent(eventId: Int!): DeleteOutput!
+
+    setEventRegistration(eventAttendanceSetInput: EventAttendanceSetInput!): EventAttendance!
+    deleteEventRegistration(eventId: Int!, personId: Int!): EventAttendanceDeleteOutput!    
 }
 
 type DeleteOutput {
