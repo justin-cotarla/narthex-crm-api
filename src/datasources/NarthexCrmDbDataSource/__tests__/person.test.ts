@@ -43,9 +43,7 @@ jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
     () => true
 );
-const mockValidateBirthDate = mocked(validateDate).mockImplementation(
-    () => true
-);
+const mockValidateDate = mocked(validateDate).mockImplementation(() => true);
 const mockValidateEmail = mocked(validateEmail).mockImplementation(() => true);
 
 beforeEach(() => {
@@ -54,7 +52,7 @@ beforeEach(() => {
     mockGetHouseholds.mockClear();
     mockClearHouseholdHead.mockClear();
     mockValidateRecordName.mockClear();
-    mockValidateBirthDate.mockClear();
+    mockValidateDate.mockClear();
     mockValidateEmail.mockClear();
 });
 
@@ -571,7 +569,7 @@ describe('person', () => {
             } as PersonAddInput);
 
             expect(mockValidateRecordName).toHaveBeenCalled();
-            expect(mockValidateBirthDate).toHaveBeenCalled();
+            expect(mockValidateDate).toHaveBeenCalled();
             expect(mockValidateEmail).toHaveBeenCalled();
         });
     });

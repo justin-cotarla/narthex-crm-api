@@ -7,6 +7,8 @@ import {
     MilestoneType,
     Ministry,
     Person,
+    Event,
+    EventAttendance,
 } from '../types/generated/graphql';
 
 const mockHousehold: Household = {
@@ -134,6 +136,22 @@ const mockMilestone: Milestone = {
     archived: false,
 };
 
+const mockEvent: Event = {
+    datetime: '2021-01-22 09:30',
+    name: 'Divine Liturgy',
+    location: '2430 ave Charland',
+    createdBy: {
+        id: 1,
+    },
+    creationTimestamp: 1639872000,
+    id: 1,
+    modificationTimestamp: 1639872000,
+    modifiedBy: {
+        id: 1,
+    },
+    archived: false,
+};
+
 export {
     mockHousehold,
     mockPerson,
@@ -141,4 +159,5 @@ export {
     mockDonation,
     mockDonationCampaign,
     mockMilestone,
+    mockEvent,
 };

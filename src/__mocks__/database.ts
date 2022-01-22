@@ -5,8 +5,9 @@ import {
     DBHousehold,
     DBMilestone,
     DBMinistry,
-    DBMinistryDelegation,
+    DBEventAttendance,
     DBPerson,
+    DBMinistryDelegation,
 } from '../types/database';
 import { Gender, MilestoneType } from '../types/generated/graphql';
 
@@ -114,6 +115,18 @@ const mockDBMilestone: DBMilestone = {
     archived: 0,
 };
 
+const mockDBEventAttendance: DBEventAttendance = {
+    event_id: 1,
+    person_id: 2,
+    attended: 1,
+    date_registered: '2022-01-21',
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
 export {
     mockDBHousehold,
     mockDBPerson,
@@ -123,4 +136,5 @@ export {
     mockDBDonation,
     mockDBDonationCampaign,
     mockDBMilestone,
+    mockDBEventAttendance,
 };

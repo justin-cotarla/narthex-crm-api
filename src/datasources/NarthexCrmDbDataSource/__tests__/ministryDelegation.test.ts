@@ -65,7 +65,7 @@ describe('ministryDelegation', () => {
             });
         });
 
-        it('gets certain ministries', async () => {
+        it('gets certain ministry delegations', async () => {
             mockQuery.mockImplementation((): DBMinistryDelegation[] => [
                 mockDBMinistryDelegation,
             ]);
@@ -139,7 +139,7 @@ describe('ministryDelegation', () => {
 
             expect(mockQuery).toHaveBeenCalledTimes(0);
         });
-        it('throws an error if the person does not exist', async () => {
+        it('throws an error if the ministry does not exist', async () => {
             mockGetMinistries.mockImplementationOnce(
                 async (): Promise<Ministry[]> => []
             );
