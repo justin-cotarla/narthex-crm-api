@@ -15,7 +15,6 @@ import {
 } from '../../../types/database';
 import {
     Donation,
-    DonationAddInput,
     DonationSortKey,
     SortOrder,
 } from '../../../types/generated/graphql';
@@ -443,10 +442,11 @@ describe('donation', () => {
     describe('_validateDonationProperties', () => {
         it('validates all donation properties', () => {
             _validateDonationProperties({
+                id: 1,
                 date: '1995-01-01',
                 amount: '123.00',
                 notes: 'Stewardship 2022',
-            } as DonationAddInput);
+            });
 
             expect(mockValidateCurrency).toHaveBeenCalled();
             expect(mockValidateDate).toHaveBeenCalled();

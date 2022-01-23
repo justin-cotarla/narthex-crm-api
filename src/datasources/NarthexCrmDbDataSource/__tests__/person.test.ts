@@ -12,7 +12,6 @@ import {
 import {
     Gender,
     Person,
-    PersonAddInput,
     PersonSortKey,
     SortOrder,
 } from '../../../types/generated/graphql';
@@ -562,11 +561,12 @@ describe('person', () => {
     describe('_validatePersonProperties', () => {
         it('validates all person properties', () => {
             _validatePersonProperties({
+                id: 1,
                 birthDate: '1995-01-01',
                 emailAddress: 'email@example.com',
                 firstName: 'Jane',
                 lastName: 'Poe',
-            } as PersonAddInput);
+            });
 
             expect(mockValidateRecordName).toHaveBeenCalled();
             expect(mockValidateDate).toHaveBeenCalled();

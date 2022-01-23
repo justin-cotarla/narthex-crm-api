@@ -8,6 +8,7 @@ import {
     DBEventAttendance,
     DBPerson,
     DBMinistryDelegation,
+    DBEvent,
 } from '../types/database';
 import { Gender, MilestoneType } from '../types/generated/graphql';
 
@@ -127,6 +128,18 @@ const mockDBEventAttendance: DBEventAttendance = {
     archived: 0,
 };
 
+const mockDBEvent: DBEvent = {
+    id: 1,
+    name: 'Divine Liturgy',
+    datetime: '2022-01-22 09:30:00',
+    location: '2430 ave Charland',
+    created_by: 1,
+    creation_timestamp: new Date('2021/12/19'),
+    modified_by: 1,
+    modification_timestamp: new Date('2021/12/19'),
+    archived: 0,
+};
+
 export {
     mockDBHousehold,
     mockDBPerson,
@@ -137,4 +150,5 @@ export {
     mockDBDonationCampaign,
     mockDBMilestone,
     mockDBEventAttendance,
+    mockDBEvent,
 };

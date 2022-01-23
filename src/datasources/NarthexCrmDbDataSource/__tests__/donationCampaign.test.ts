@@ -11,7 +11,6 @@ import {
 } from '../../../types/database';
 import {
     DonationCampaign,
-    DonationCampaignAddInput,
     DonationCampaignSortKey,
     SortOrder,
 } from '../../../types/generated/graphql';
@@ -501,7 +500,7 @@ describe('donationCampaign', () => {
                 },
                 name: 'Stewardship 2021',
                 notes: 'Pretty bad year',
-            } as DonationCampaignAddInput);
+            });
 
             expect(mockValidateDateRange).toHaveBeenCalled();
             expect(mockValidateRecordName).toHaveBeenCalled();

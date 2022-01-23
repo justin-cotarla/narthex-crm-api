@@ -23,7 +23,11 @@ import * as personModule from './person';
 const _validateEventAttendanceProperties = (
     eventInput: EventAttendanceSetInput
 ) => {
-    const { dateRegistered } = eventInput;
+    const { dateRegistered, attended } = eventInput;
+
+    if (dateRegistered === null || attended === null) {
+        throw new UserInputError('Mandatory input cannot be null');
+    }
 
     if (dateRegistered && !validateDate(dateRegistered)) {
         throw new UserInputError('Invalid registration date');

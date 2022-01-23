@@ -9,10 +9,7 @@ import {
     DBUpdateResponse,
     RecordTable,
 } from '../../../types/database';
-import {
-    MilestoneAddInput,
-    MilestoneType,
-} from '../../../types/generated/graphql';
+import { MilestoneType } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
 import { validateDate } from '../../../util/validation';
 import * as milestoneModule from '../milestone';
@@ -343,9 +340,10 @@ describe('milestone', () => {
     describe('_validateMilestoneProperties', () => {
         it('accepts valid milestone properties', () => {
             milestoneModule._validateMilestoneProperties({
+                id: 1,
                 type: MilestoneType.Baptism,
                 date: '2020-05-22',
-            } as MilestoneAddInput);
+            });
 
             expect(mockValidateDate).toBeCalled();
         });

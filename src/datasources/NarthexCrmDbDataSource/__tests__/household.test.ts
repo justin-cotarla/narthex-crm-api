@@ -9,11 +9,7 @@ import {
     DBUpdateResponse,
     RecordTable,
 } from '../../../types/database';
-import {
-    HouseholdAddInput,
-    HouseholdSortKey,
-    SortOrder,
-} from '../../../types/generated/graphql';
+import { HouseholdSortKey, SortOrder } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
 import { validateRecordName, validateAddress } from '../../../util/validation';
 import * as householdModule from '../household';
@@ -528,7 +524,7 @@ describe('household', () => {
                     country: 'CA',
                 },
                 name: 'Smith Family',
-            } as HouseholdAddInput);
+            });
             expect(mockValidateRecordName).toBeCalled();
             expect(mockValidateAddress).toBeCalled();
         });

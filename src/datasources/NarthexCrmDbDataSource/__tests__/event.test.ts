@@ -2,22 +2,18 @@ import { UserInputError } from 'apollo-server';
 import { mocked, SpyInstance, spyOn } from 'jest-mock';
 import { format as sqlFormat } from 'sql-formatter';
 
-import { mockDBMinistry } from '../../../__mocks__/database';
-import { mockMinistry } from '../../../__mocks__/schema';
+import { mockDBEvent } from '../../../__mocks__/database';
+import { mockEvent } from '../../../__mocks__/schema';
 import {
-    DBMinistry,
+    DBEvent,
     DBUpdateResponse,
     RecordTable,
 } from '../../../types/database';
+import { EventSortKey, SortOrder } from '../../../types/generated/graphql';
 import { DatabaseError, NotFoundError } from '../../../util/error';
-import { validateRecordName, validateColor } from '../../../util/validation';
-import * as ministryModule from '../ministry';
-import {
-    addMinistry,
-    archiveMinistry,
-    getMinistries,
-    updateMinistry,
-} from '../ministry';
+import { validateRecordName, validateDateTime } from '../../../util/validation';
+import * as eventModule from '../event';
+import { addEvent, archiveEvent, getEvents, updateEvent } from '../event';
 
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
@@ -26,35 +22,38 @@ jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
     () => true
 );
-const mockValidateColor = mocked(validateColor).mockImplementation(() => true);
+const mockValidateDateTime = mocked(validateDateTime).mockImplementation(
+    () => true
+);
 
 beforeEach(() => {
     mockQuery.mockClear();
     mockLogRecordChange.mockClear();
-    mockValidateColor.mockClear();
+    mockValidateDateTime.mockClear();
     mockValidateRecordName.mockClear();
 });
 
-describe('ministry', () => {
-    describe('getMinistries', () => {
-        it('gets ministries with default arguments', async () => {
-            mockQuery.mockImplementation((): DBMinistry[] => [mockDBMinistry]);
+describe('event', () => {
+    describe('getEvents', () => {
+        it('gets events with default arguments', async () => {
+            mockQuery.mockImplementation((): DBEvent[] => [mockDBEvent]);
 
-            await getMinistries(mockQuery);
+            await getEvents(mockQuery);
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
                     SELECT
                         id,
                         name,
-                        color,
+                        location,
+                        datetime,
                         created_by,
                         creation_timestamp,
                         modified_by,
                         modification_timestamp,
                         archived
                     FROM
-                        ministry
+                        event
                     WHERE
                         archived <> 1
                     `),
@@ -62,12 +61,18 @@ describe('ministry', () => {
             });
         });
 
-        it('gets ministries with all arguments', async () => {
-            mockQuery.mockImplementation((): DBMinistry[] => [mockDBMinistry]);
+        it('gets events with all arguments', async () => {
+            mockQuery.mockImplementation((): DBEvent[] => [mockDBEvent]);
 
-            await getMinistries(mockQuery, {
+            await getEvents(mockQuery, {
                 archived: true,
-                ministryIds: [1],
+                eventIds: [1],
+                sortKey: EventSortKey.Id,
+                paginationOptions: {
+                    limit: 1,
+                    offset: 1,
+                    sortOrder: SortOrder.Desc,
+                },
             });
 
             expect(mockQuery).toBeCalledWith({
@@ -75,39 +80,45 @@ describe('ministry', () => {
                     SELECT
                         id,
                         name,
-                        color,
+                        location,
+                        datetime,
                         created_by,
                         creation_timestamp,
                         modified_by,
                         modification_timestamp,
                         archived
                     FROM
-                        ministry
+                        event
                     WHERE
                         id in (?)
+                    order by
+                        ID DESC
+                    limit
+                        1 offset 1
                     `),
                 values: [[1]],
             });
         });
 
-        it('returns an empty array if there are no ministries', async () => {
-            mockQuery.mockImplementation((): DBMinistry[] => []);
+        it('returns an empty array if there are no events', async () => {
+            mockQuery.mockImplementation((): DBEvent[] => []);
 
-            const result = await getMinistries(mockQuery, { ministryIds: [4] });
+            const result = await getEvents(mockQuery, { eventIds: [4] });
 
             expect(result).toEqual([]);
         });
     });
-    describe('addMinistry', () => {
-        it('adds a minimal ministry', async () => {
+    describe('addEvent', () => {
+        it('adds a minimal event', async () => {
             mockQuery.mockImplementation(() => ({
                 insertId: 1,
             }));
 
-            const result = await addMinistry(
+            const result = await addEvent(
                 mockQuery,
                 {
-                    name: 'Choir',
+                    datetime: '2021-01-22 09:30',
+                    name: 'Divine Liturgy',
                 },
                 1
             );
@@ -116,24 +127,25 @@ describe('ministry', () => {
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
                 INSERT INTO
-                    ministry (name, color, created_by, modified_by)
+                    event (name, datetime, created_by, modified_by)
                 VALUES
                     (?, ?, ?, ?)
                 `),
-                values: ['Choir', 11780024, 1, 1],
+                values: ['Divine Liturgy', '2021-01-22 09:30', 1, 1],
             });
         });
 
-        it('adds a full ministry', async () => {
+        it('adds a full event', async () => {
             mockQuery.mockImplementation(() => ({
                 insertId: 1,
             }));
 
-            const result = await addMinistry(
+            const result = await addEvent(
                 mockQuery,
                 {
-                    name: 'Choir',
-                    color: '#FFFFFF',
+                    datetime: '2021-01-22 09:30',
+                    name: 'Divine Liturgy',
+                    location: '2430 ave Charland',
                 },
                 1
             );
@@ -142,11 +154,17 @@ describe('ministry', () => {
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
                 INSERT INTO
-                    ministry (name, color, created_by, modified_by)
+                    event (name, datetime, created_by, modified_by, location)
                 VALUES
-                    (?, ?, ?, ?)
+                    (?, ?, ?, ?, ?)
                 `),
-                values: ['Choir', 16777215, 1, 1],
+                values: [
+                    'Divine Liturgy',
+                    '2021-01-22 09:30',
+                    1,
+                    1,
+                    '2430 ave Charland',
+                ],
             });
         });
 
@@ -154,11 +172,11 @@ describe('ministry', () => {
             mockQuery.mockImplementation(() => undefined);
 
             await expect(
-                addMinistry(
+                addEvent(
                     mockQuery,
                     {
-                        name: 'Choir',
-                        color: '#FFFFFF',
+                        datetime: '2021-01-22 09:30',
+                        name: 'Divine Liturgy',
                     },
                     1
                 )
@@ -168,18 +186,18 @@ describe('ministry', () => {
         });
     });
 
-    describe('updateMinistry', () => {
-        let spyGetMinistries: SpyInstance<unknown, unknown[]>;
+    describe('updateEvent', () => {
+        let spyGetEvents: SpyInstance<unknown, unknown[]>;
 
         beforeEach(() => {
-            spyGetMinistries = spyOn(ministryModule, 'getMinistries');
+            spyGetEvents = spyOn(eventModule, 'getEvents');
         });
 
         afterEach(() => {
-            spyGetMinistries.mockRestore();
+            spyGetEvents.mockRestore();
         });
-        it('updates a ministry', async () => {
-            spyGetMinistries.mockImplementation(() => [mockMinistry]);
+        it('updates a event', async () => {
+            spyGetEvents.mockImplementation(() => [mockEvent]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -187,45 +205,53 @@ describe('ministry', () => {
                 })
             );
 
-            await updateMinistry(
+            await updateEvent(
                 mockQuery,
                 mockLogRecordChange,
                 {
                     id: 1,
-                    color: '#000000',
-                    name: 'Council',
+                    datetime: '2021-01-22 09:30',
+                    name: 'Divine Liturgy',
+                    location: '2430 ave Charland',
                 },
                 2
             );
 
-            expect(spyGetMinistries).toHaveBeenCalled();
+            expect(spyGetEvents).toHaveBeenCalled();
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
                         UPDATE
-                            ministry
+                            event
                         SET
                             modified_by = ?,
                             name = ?,
-                            color = ?
+                            datetime = ?,
+                            location = ?
                         WHERE
                             ID = ?;
                     `),
-                values: [2, 'Council', 0, 1],
+                values: [
+                    2,
+                    'Divine Liturgy',
+                    '2021-01-22 09:30',
+                    '2430 ave Charland',
+                    1,
+                ],
             });
 
             expect(mockLogRecordChange).toHaveBeenCalledWith(
-                RecordTable.MINISTRY,
+                RecordTable.EVENT,
                 1,
                 2
             );
         });
 
-        it('throws an error if no the ministry does not exists', async () => {
-            spyGetMinistries.mockImplementation(() => []);
+        it('throws an error if no the event does not exists', async () => {
+            spyGetEvents.mockImplementation(() => []);
 
             await expect(
-                updateMinistry(
+                updateEvent(
                     mockQuery,
                     mockLogRecordChange,
                     {
@@ -239,10 +265,10 @@ describe('ministry', () => {
         });
 
         it('throws an error if no changes are provided', async () => {
-            spyGetMinistries.mockImplementation(() => [mockMinistry]);
+            spyGetEvents.mockImplementation(() => [mockEvent]);
 
             await expect(
-                updateMinistry(
+                updateEvent(
                     mockQuery,
                     mockLogRecordChange,
                     {
@@ -255,8 +281,8 @@ describe('ministry', () => {
             expect(mockQuery).toHaveBeenCalledTimes(0);
         });
 
-        it('throws an error if the ministry was not updated on the database', async () => {
-            spyGetMinistries.mockImplementation(() => [mockMinistry]);
+        it('throws an error if the event was not updated on the database', async () => {
+            spyGetEvents.mockImplementation(() => [mockEvent]);
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -265,7 +291,7 @@ describe('ministry', () => {
             );
 
             await expect(
-                updateMinistry(
+                updateEvent(
                     mockQuery,
                     mockLogRecordChange,
                     {
@@ -278,8 +304,8 @@ describe('ministry', () => {
         });
     });
 
-    describe('archiveMinistry', () => {
-        it('archives a ministry', async () => {
+    describe('archiveEvent', () => {
+        it('archives a event', async () => {
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 1,
@@ -287,11 +313,11 @@ describe('ministry', () => {
                 })
             );
 
-            await archiveMinistry(mockQuery, mockLogRecordChange, 1, 2);
+            await archiveEvent(mockQuery, mockLogRecordChange, 1, 2);
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
-                    UPDATE ministry
+                    UPDATE event
                     SET
                         archived = 1
                     WHERE ID = ?;
@@ -299,13 +325,13 @@ describe('ministry', () => {
                 values: [1],
             });
             expect(mockLogRecordChange).toHaveBeenCalledWith(
-                RecordTable.MINISTRY,
+                RecordTable.EVENT,
                 1,
                 2
             );
         });
 
-        it('throws an error if the ministry was not archived on the database', async () => {
+        it('throws an error if the event was not archived on the database', async () => {
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
                     affectedRows: 0,
@@ -314,19 +340,21 @@ describe('ministry', () => {
             );
 
             await expect(
-                archiveMinistry(mockQuery, mockLogRecordChange, 1, 2)
+                archiveEvent(mockQuery, mockLogRecordChange, 1, 2)
             ).rejects.toThrowError(DatabaseError);
         });
     });
 
-    describe('_validateMinistryProperties', () => {
-        it('accepts valid ministry properties', () => {
-            ministryModule._validateMinistryProperties({
-                color: '#F15025',
-                name: 'Choir',
+    describe('_validateEventProperties', () => {
+        it('accepts valid event properties', () => {
+            eventModule._validateEventProperties({
+                id: 1,
+                datetime: '2021-01-22 09:30',
+                name: 'Divine Liturgy',
+                location: '2430 ave Charland',
             });
 
-            expect(mockValidateColor).toBeCalled();
+            expect(mockValidateDateTime).toBeCalled();
             expect(mockValidateRecordName).toBeCalled();
         });
     });

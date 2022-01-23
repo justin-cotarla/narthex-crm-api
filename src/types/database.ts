@@ -19,7 +19,6 @@ enum RecordTable {
     DONATION_CAMPAIGN = 'donation_campaign',
     MILESTONE = 'milestone',
     EVENT = 'event',
-    EVENT_ATTENDANCE = 'event_attendance',
 }
 
 interface DBRecord {
