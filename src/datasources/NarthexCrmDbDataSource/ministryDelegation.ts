@@ -2,7 +2,10 @@ import { UserInputError } from 'apollo-server';
 import { format as sqlFormat } from 'sql-formatter';
 
 import { DBMinistryDelegation, DBUpdateResponse } from '../../types/database';
-import { MinistryDelegation } from '../../types/generated/graphql';
+import {
+    MinistryDelegation,
+    MinistryDelegationSetInput,
+} from '../../types/generated/graphql';
 import { DatabaseError } from '../../util/error';
 import { mapMinistryDelegation } from '../../util/mappers';
 import { buildInsertClause, buildWhereClause } from '../../util/query';
@@ -47,12 +50,13 @@ const getMinistryDelegations = async (
     return rows?.map(mapMinistryDelegation) ?? [];
 };
 
-const addPersonToMinsitry = async (
+const setMinistryDelegation = async (
     query: MySqlDataSource['query'],
-    ministryId: number,
-    personId: number,
+    ministryDelegationSetInput: MinistryDelegationSetInput,
     clientId: number
 ): Promise<void> => {
+    const { ministryId, personId } = ministryDelegationSetInput;
+
     const [person] = await personModule.getPeople(query, {
         personIds: [personId],
     });
@@ -92,7 +96,7 @@ const addPersonToMinsitry = async (
     }
 };
 
-const removePersonFromMinistry = async (
+const deleteMinistryDelegation = async (
     query: MySqlDataSource['query'],
     ministryId: number,
     personId: number
@@ -115,7 +119,7 @@ const removePersonFromMinistry = async (
 };
 
 export {
-    addPersonToMinsitry,
+    setMinistryDelegation,
     getMinistryDelegations,
-    removePersonFromMinistry,
+    deleteMinistryDelegation,
 };

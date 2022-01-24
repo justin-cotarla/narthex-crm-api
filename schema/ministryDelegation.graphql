@@ -7,6 +7,10 @@ type MinistryDelegation implements Record {
     modificationTimestamp: Int
     archived: Boolean
 }
+input MinistryDelegationSetInput {
+    ministryId: Int!
+    personId: Int!
+}
 
 type MinistryDelegationDeleteOutput {
     ministryId: Int!

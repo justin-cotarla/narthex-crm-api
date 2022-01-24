@@ -38,9 +38,9 @@ import {
     updateMinistry,
 } from './ministry';
 import {
-    addPersonToMinsitry,
+    setMinistryDelegation,
     getMinistryDelegations,
-    removePersonFromMinistry,
+    deleteMinistryDelegation,
 } from './ministryDelegation';
 import { addPerson, archivePerson, getPeople, updatePerson } from './person';
 
@@ -132,17 +132,17 @@ class NarthexCrmDbDataSource extends MySqlDataSource {
             ...args
         );
 
-    addPersonToMinsitry = (
-        ...args: Tail<Parameters<typeof addPersonToMinsitry>>
-    ) => addPersonToMinsitry(this.query.bind(this), ...args);
+    setMinistryDelegation = (
+        ...args: Tail<Parameters<typeof setMinistryDelegation>>
+    ) => setMinistryDelegation(this.query.bind(this), ...args);
 
     getMinistryDelegations = (
         ...args: Tail<Parameters<typeof getMinistryDelegations>>
     ) => getMinistryDelegations(this.query.bind(this), ...args);
 
-    removePersonFromMinistry = (
-        ...args: Tail<Parameters<typeof removePersonFromMinistry>>
-    ) => removePersonFromMinistry(this.query.bind(this), ...args);
+    deleteMinistryDelegation = (
+        ...args: Tail<Parameters<typeof deleteMinistryDelegation>>
+    ) => deleteMinistryDelegation(this.query.bind(this), ...args);
 
     getPeople = (...args: Tail<Parameters<typeof getPeople>>) =>
         getPeople(this.cacheQuery.bind(this), ...args);

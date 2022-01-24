@@ -11,8 +11,8 @@ import { Ministry, Person } from '../../../types/generated/graphql';
 import { DatabaseError } from '../../../util/error';
 import { getMinistries } from '../ministry';
 import {
-    addPersonToMinsitry,
-    removePersonFromMinistry,
+    setMinistryDelegation,
+    deleteMinistryDelegation,
     getMinistryDelegations,
 } from '../ministryDelegation';
 import { getPeople } from '../person';
@@ -99,13 +99,17 @@ describe('ministryDelegation', () => {
             expect(result).toEqual([]);
         });
     });
-    describe('addPersonToMinsitry', () => {
+    describe('setMinistryDelegation', () => {
         it('adds a delegee to a ministry', async () => {
             mockQuery.mockImplementation(() => ({
                 affectedRows: 1,
             }));
 
-            await addPersonToMinsitry(mockQuery, 2, 3, 1);
+            await setMinistryDelegation(
+                mockQuery,
+                { ministryId: 2, personId: 3 },
+                1
+            );
 
             expect(mockQuery).toBeCalledWith({
                 sql: sqlFormat(`
@@ -122,7 +126,11 @@ describe('ministryDelegation', () => {
             mockQuery.mockImplementation(() => undefined);
 
             await expect(
-                addPersonToMinsitry(mockQuery, 2, 3, 1)
+                setMinistryDelegation(
+                    mockQuery,
+                    { ministryId: 2, personId: 3 },
+                    1
+                )
             ).rejects.toThrowError(Error);
 
             expect(mockQuery).toBeCalled();
@@ -134,7 +142,11 @@ describe('ministryDelegation', () => {
             );
 
             await expect(
-                addPersonToMinsitry(mockQuery, 2, 3, 1)
+                setMinistryDelegation(
+                    mockQuery,
+                    { ministryId: 2, personId: 3 },
+                    1
+                )
             ).rejects.toThrowError(Error);
 
             expect(mockQuery).toHaveBeenCalledTimes(0);
@@ -145,14 +157,18 @@ describe('ministryDelegation', () => {
             );
 
             await expect(
-                addPersonToMinsitry(mockQuery, 2, 3, 1)
+                setMinistryDelegation(
+                    mockQuery,
+                    { ministryId: 2, personId: 3 },
+                    1
+                )
             ).rejects.toThrowError(Error);
 
             expect(mockQuery).toHaveBeenCalledTimes(0);
         });
     });
 
-    describe('removePersonFromMinistry', () => {
+    describe('deleteMinistryDelegation', () => {
         it('removes a person from a ministry delegation', async () => {
             mockQuery.mockImplementation(
                 (): DBUpdateResponse => ({
@@ -161,7 +177,7 @@ describe('ministryDelegation', () => {
                 })
             );
 
-            await removePersonFromMinistry(mockQuery, 1, 2);
+            await deleteMinistryDelegation(mockQuery, 1, 2);
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
@@ -183,7 +199,7 @@ describe('ministryDelegation', () => {
             );
 
             await expect(
-                removePersonFromMinistry(mockQuery, 1, 2)
+                deleteMinistryDelegation(mockQuery, 1, 2)
             ).rejects.toThrowError(DatabaseError);
         });
     });
