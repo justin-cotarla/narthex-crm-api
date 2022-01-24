@@ -10,6 +10,7 @@ const getHouseholdLoader = (narthexCrmDataSource: NarthexCrmDbDataSource) => {
     ): Promise<Household[][]> => {
         const households = await narthexCrmDataSource.getHouseholds({
             householdIds: householdIds as number[],
+            archived: true,
         });
 
         const householdMap = R.groupBy(({ id }) => id.toString(), households);
