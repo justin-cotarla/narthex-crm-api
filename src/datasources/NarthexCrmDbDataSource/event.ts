@@ -26,6 +26,7 @@ import { validateDateTime, validateRecordName } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
 import * as eventModule from './event';
+import * as eventAttendanceModule from './eventAttendance';
 
 import { NarthexCrmDbDataSource } from '.';
 
@@ -224,6 +225,7 @@ const archiveEvent = async (
     if (!rows || rows.affectedRows === 0) {
         throw new DatabaseError('Could not archive event');
     }
+    await eventAttendanceModule.deleteEventAttendance(query, [eventId], []);
 
     await logRecordChange(RecordTable.EVENT, eventId, clientId);
 };

@@ -29,6 +29,7 @@ import {
 } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
+import * as eventAttendanceModule from './eventAttendance';
 import * as householdModule from './household';
 import * as personModule from './person';
 
@@ -317,6 +318,8 @@ const archivePerson = async (
     if (!rows || rows.affectedRows === 0) {
         throw new DatabaseError('Could not archive person');
     }
+
+    await eventAttendanceModule.deleteEventAttendance(query, [], [personId]);
 
     await logRecordChange(RecordTable.PERSON, personId, clientId);
 };

@@ -21,6 +21,7 @@ import {
     validateDate,
     validateEmail,
 } from '../../../util/validation';
+import { deleteEventAttendance } from '../eventAttendance';
 import { clearHouseholdHead, getHouseholds } from '../household';
 import * as personModule from '../person';
 import {
@@ -37,6 +38,9 @@ const mockLogRecordChange = jest.fn();
 jest.mock('../household');
 const mockGetHouseholds = mocked(getHouseholds);
 const mockClearHouseholdHead = mocked(clearHouseholdHead);
+
+jest.mock('../eventAttendance');
+const mockDeleteEventAttendance = mocked(deleteEventAttendance);
 
 jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
@@ -541,6 +545,11 @@ describe('person', () => {
                 RecordTable.PERSON,
                 1,
                 2
+            );
+            expect(mockDeleteEventAttendance).toHaveBeenCalledWith(
+                mockQuery,
+                [],
+                [1]
             );
         });
 

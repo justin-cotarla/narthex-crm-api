@@ -490,6 +490,26 @@ const Mutation: MutationResolvers = {
 
         return eventAttendence;
     },
+
+    deleteEventRegistration: async (
+        _,
+        { eventId, personId },
+        { dataSources: { narthexCrmDbDataSource }, clientToken }
+    ) => {
+        authorize(clientToken, {
+            scopes: ['admin'],
+        });
+
+        await narthexCrmDbDataSource.deleteEventAttendance(
+            [eventId],
+            [personId]
+        );
+
+        return {
+            eventId,
+            personId,
+        };
+    },
 };
 
 export { Mutation };

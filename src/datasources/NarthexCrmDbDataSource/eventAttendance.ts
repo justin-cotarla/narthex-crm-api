@@ -146,19 +146,27 @@ const setEventAttendance = async (
 
 const deleteEventAttendance = async (
     query: MySqlDataSource['query'],
-    eventId: number,
-    personId: number
+    eventIds: number[],
+    personIds: number[]
 ): Promise<void> => {
+    const whereClause = buildWhereClause([
+        { clause: 'event_id in (?)', condition: eventIds?.length !== 0 },
+        { clause: 'person_id in (?)', condition: personIds?.length !== 0 },
+    ]);
+
     const sql = sqlFormat(`
         DELETE FROM event_attendance
-        WHERE
-            event_id = ?
-            and person_id = ?
+           ${whereClause}
     `);
+
+    const values = [
+        ...(eventIds.length > 0 ? [eventIds] : []),
+        ...(personIds.length > 0 ? [personIds] : []),
+    ];
 
     const rows = await query<DBUpdateResponse>({
         sql,
-        values: [eventId, personId],
+        values,
     });
 
     if (!rows || rows.affectedRows === 0) {

@@ -14,9 +14,13 @@ import { DatabaseError, NotFoundError } from '../../../util/error';
 import { validateRecordName, validateDateTime } from '../../../util/validation';
 import * as eventModule from '../event';
 import { addEvent, archiveEvent, getEvents, updateEvent } from '../event';
+import { deleteEventAttendance } from '../eventAttendance';
 
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
+
+jest.mock('../eventAttendance');
+const mockDeleteEventAttendance = mocked(deleteEventAttendance);
 
 jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
@@ -328,6 +332,12 @@ describe('event', () => {
                 RecordTable.EVENT,
                 1,
                 2
+            );
+
+            expect(mockDeleteEventAttendance).toHaveBeenCalledWith(
+                mockQuery,
+                [1],
+                []
             );
         });
 

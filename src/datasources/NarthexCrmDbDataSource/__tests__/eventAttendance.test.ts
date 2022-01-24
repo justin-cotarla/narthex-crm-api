@@ -233,16 +233,16 @@ describe('eventAttendance', () => {
                 })
             );
 
-            await deleteEventAttendance(mockQuery, 1, 2);
+            await deleteEventAttendance(mockQuery, [1], [2]);
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
                     DELETE FROM event_attendance
                     WHERE
-                        event_id = ?
-                        and person_id = ?
+                        event_id in (?)
+                        and person_id in (?)
                 `),
-                values: [1, 2],
+                values: [[1], [2]],
             });
         });
 
@@ -255,7 +255,7 @@ describe('eventAttendance', () => {
             );
 
             await expect(
-                deleteEventAttendance(mockQuery, 1, 2)
+                deleteEventAttendance(mockQuery, [1], [2])
             ).rejects.toThrowError(DatabaseError);
         });
     });
