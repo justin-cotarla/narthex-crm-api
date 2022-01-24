@@ -177,16 +177,16 @@ describe('ministryDelegation', () => {
                 })
             );
 
-            await deleteMinistryDelegation(mockQuery, 1, 2);
+            await deleteMinistryDelegation(mockQuery, [1], [2]);
 
             expect(mockQuery).toHaveBeenCalledWith({
                 sql: sqlFormat(`
                     DELETE FROM ministry_delegation
                     WHERE
-                        ministry_id = ?
-                        and person_id = ?
+                        ministry_id in (?)
+                        and person_id in (?)
                 `),
-                values: [1, 2],
+                values: [[1], [2]],
             });
         });
 
@@ -199,7 +199,7 @@ describe('ministryDelegation', () => {
             );
 
             await expect(
-                deleteMinistryDelegation(mockQuery, 1, 2)
+                deleteMinistryDelegation(mockQuery, [1], [2])
             ).rejects.toThrowError(DatabaseError);
         });
     });

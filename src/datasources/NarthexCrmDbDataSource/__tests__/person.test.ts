@@ -23,6 +23,7 @@ import {
 } from '../../../util/validation';
 import { deleteEventAttendance } from '../eventAttendance';
 import { clearHouseholdHead, getHouseholds } from '../household';
+import { deleteMinistryDelegation } from '../ministryDelegation';
 import * as personModule from '../person';
 import {
     addPerson,
@@ -41,6 +42,9 @@ const mockClearHouseholdHead = mocked(clearHouseholdHead);
 
 jest.mock('../eventAttendance');
 const mockDeleteEventAttendance = mocked(deleteEventAttendance);
+
+jest.mock('../ministryDelegation');
+const mockDeleteMinistryDelegation = mocked(deleteMinistryDelegation);
 
 jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
@@ -547,6 +551,12 @@ describe('person', () => {
                 2
             );
             expect(mockDeleteEventAttendance).toHaveBeenCalledWith(
+                mockQuery,
+                [],
+                [1]
+            );
+
+            expect(mockDeleteMinistryDelegation).toHaveBeenCalledWith(
                 mockQuery,
                 [],
                 [1]

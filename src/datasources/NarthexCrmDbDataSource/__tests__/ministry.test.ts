@@ -18,9 +18,13 @@ import {
     getMinistries,
     updateMinistry,
 } from '../ministry';
+import { deleteMinistryDelegation } from '../ministryDelegation';
 
 const mockQuery = jest.fn();
 const mockLogRecordChange = jest.fn();
+
+jest.mock('../ministryDelegation');
+const mockDeleteMinistryDelegation = mocked(deleteMinistryDelegation);
 
 jest.mock('../../../util/validation');
 const mockValidateRecordName = mocked(validateRecordName).mockImplementation(
@@ -298,6 +302,13 @@ describe('ministry', () => {
                 `),
                 values: [1],
             });
+
+            expect(mockDeleteMinistryDelegation).toHaveBeenCalledWith(
+                mockQuery,
+                [1],
+                []
+            );
+
             expect(mockLogRecordChange).toHaveBeenCalledWith(
                 RecordTable.MINISTRY,
                 1,

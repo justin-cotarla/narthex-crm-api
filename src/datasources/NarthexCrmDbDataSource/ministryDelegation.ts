@@ -98,19 +98,27 @@ const setMinistryDelegation = async (
 
 const deleteMinistryDelegation = async (
     query: MySqlDataSource['query'],
-    ministryId: number,
-    personId: number
+    ministryIds: number[],
+    personIds: number[]
 ): Promise<void> => {
+    const whereClause = buildWhereClause([
+        { clause: 'ministry_id in (?)', condition: ministryIds?.length !== 0 },
+        { clause: 'person_id in (?)', condition: personIds?.length !== 0 },
+    ]);
+
     const sql = sqlFormat(`
         DELETE FROM ministry_delegation
-        WHERE
-            ministry_id = ?
-            and person_id = ?
+        ${whereClause}
     `);
+
+    const values = [
+        ...(ministryIds.length > 0 ? [ministryIds] : []),
+        ...(personIds.length > 0 ? [personIds] : []),
+    ];
 
     const rows = await query<DBUpdateResponse>({
         sql,
-        values: [ministryId, personId],
+        values,
     });
 
     if (!rows || rows.affectedRows === 0) {

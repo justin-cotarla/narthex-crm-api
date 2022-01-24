@@ -23,6 +23,7 @@ import { validateColor, validateRecordName } from '../../util/validation';
 import { MySqlDataSource } from '../MySqlDataSource';
 
 import * as ministryModule from './ministry';
+import * as ministryDelegationModule from './ministryDelegation';
 
 import { NarthexCrmDbDataSource } from './';
 
@@ -189,6 +190,12 @@ const archiveMinistry = async (
     if (!rows || rows.affectedRows === 0) {
         throw new DatabaseError('Could not archive ministry');
     }
+
+    await ministryDelegationModule.deleteMinistryDelegation(
+        query,
+        [ministryId],
+        []
+    );
 
     await logRecordChange(RecordTable.MINISTRY, ministryId, clientId);
 };

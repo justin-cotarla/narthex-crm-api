@@ -31,6 +31,7 @@ import { MySqlDataSource } from '../MySqlDataSource';
 
 import * as eventAttendanceModule from './eventAttendance';
 import * as householdModule from './household';
+import * as ministryDelegationModule from './ministryDelegation';
 import * as personModule from './person';
 
 import { NarthexCrmDbDataSource } from './';
@@ -320,6 +321,11 @@ const archivePerson = async (
     }
 
     await eventAttendanceModule.deleteEventAttendance(query, [], [personId]);
+    await ministryDelegationModule.deleteMinistryDelegation(
+        query,
+        [],
+        [personId]
+    );
 
     await logRecordChange(RecordTable.PERSON, personId, clientId);
 };

@@ -179,8 +179,8 @@ const Mutation: MutationResolvers = {
         });
 
         await narthexCrmDbDataSource.deleteMinistryDelegation(
-            ministryId,
-            personId
+            [ministryId],
+            [personId]
         );
 
         return {
