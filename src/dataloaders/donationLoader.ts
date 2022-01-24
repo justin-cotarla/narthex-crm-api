@@ -32,7 +32,10 @@ const getDonationByHouseholdLoader = (
             householdIds: householdIds as number[],
         });
 
-        const householdMap = R.groupBy(({ id }) => id.toString(), households);
+        const householdMap = R.groupBy(
+            ({ household }) => household!.id.toString(),
+            households
+        );
 
         return householdIds.map(
             (householdId) => householdMap[householdId] ?? undefined
