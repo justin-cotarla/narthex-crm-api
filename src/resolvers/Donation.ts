@@ -5,27 +5,29 @@ const Donation: DonationResolvers = {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     household: async ({ household }, _, { dataLoaders: { households } }) => {
         if (!household?.id) {
             return null;
         }
-        const [householdResult] = await households.load(household.id);
+        const [householdResult] = (await households.load(household.id)) ?? [
+            null,
+        ];
 
-        return householdResult ?? null;
+        return householdResult;
     },
 
     donationCampaign: async (
@@ -37,11 +39,11 @@ const Donation: DonationResolvers = {
             return null;
         }
 
-        const [donationCampaignResult] = await donationCampaigns.load(
+        const [donationCampaignResult] = (await donationCampaigns.load(
             donationCampaign.id
-        );
+        )) ?? [null];
 
-        return donationCampaignResult ?? null;
+        return donationCampaignResult;
     },
 };
 

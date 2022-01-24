@@ -5,18 +5,18 @@ const Person: PersonResolvers = {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     ministryDelegations: async (
@@ -35,9 +35,11 @@ const Person: PersonResolvers = {
         if (!household?.id) {
             return null;
         }
-        const [householdResult] = await households.load(household.id);
+        const [householdResult] = (await households.load(household.id)) ?? [
+            null,
+        ];
 
-        return householdResult ?? null;
+        return householdResult;
     },
 
     eventAttendance: async (

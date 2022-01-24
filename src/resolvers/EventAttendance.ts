@@ -5,28 +5,28 @@ const EventAttendance: EventAttendanceResolvers = {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     attendee: async ({ attendee }, _, { dataLoaders: { people } }) => {
-        const [peopleResult] = await people.load(attendee.id);
+        const [peopleResult] = (await people.load(attendee.id)) ?? [null];
 
         return peopleResult;
     },
 
     event: async ({ event }, _, { dataLoaders: { events } }) => {
-        const [eventResult] = await events.load(event.id);
+        const [eventResult] = (await events.load(event.id)) ?? [null];
 
         return eventResult;
     },

@@ -5,18 +5,18 @@ const Ministry: MinistryResolvers = {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     modifiedBy: async ({ createdBy }, _, { dataLoaders: { clients } }) => {
         if (!createdBy) {
             return null;
         }
-        const [clientResult] = await clients.load(createdBy?.id);
+        const [clientResult] = (await clients.load(createdBy?.id)) ?? [null];
 
-        return clientResult ?? null;
+        return clientResult;
     },
 
     delegations: async (
